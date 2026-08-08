@@ -20,6 +20,7 @@ import { Route as PlanningRouteImport } from './routes/planning'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AnalysisIndexRouteImport } from './routes/analysis.index'
+import { Route as ReportsIndexRouteImport } from './routes/reports.index'
 import { Route as AnalysisSiteIdRouteImport } from './routes/analysis.site.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -77,6 +78,11 @@ const AnalysisIndexRoute = AnalysisIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AnalysisRoute,
 } as any)
+const ReportsIndexRoute = ReportsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ReportsRoute,
+} as any)
 const AnalysisSiteIdRoute = AnalysisSiteIdRouteImport.update({
   id: '/site/$id',
   path: '/site/$id',
@@ -92,9 +98,10 @@ export interface FileRoutesByFullPath {
   '/help': typeof HelpRoute
   '/livability': typeof LivabilityRoute
   '/planning': typeof PlanningRoute
-  '/reports': typeof ReportsRoute
+  '/reports': typeof ReportsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/analysis/': typeof AnalysisIndexRoute
+  '/reports/': typeof ReportsIndexRoute
   '/analysis/site/$id': typeof AnalysisSiteIdRoute
 }
 export interface FileRoutesByTo {
@@ -105,9 +112,9 @@ export interface FileRoutesByTo {
   '/help': typeof HelpRoute
   '/livability': typeof LivabilityRoute
   '/planning': typeof PlanningRoute
-  '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
   '/analysis': typeof AnalysisIndexRoute
+  '/reports': typeof ReportsIndexRoute
   '/analysis/site/$id': typeof AnalysisSiteIdRoute
 }
 export interface FileRoutesById {
@@ -120,9 +127,10 @@ export interface FileRoutesById {
   '/help': typeof HelpRoute
   '/livability': typeof LivabilityRoute
   '/planning': typeof PlanningRoute
-  '/reports': typeof ReportsRoute
+  '/reports': typeof ReportsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/analysis/': typeof AnalysisIndexRoute
+  '/reports/': typeof ReportsIndexRoute
   '/analysis/site/$id': typeof AnalysisSiteIdRoute
 }
 export interface FileRouteTypes {
@@ -139,6 +147,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/settings'
     | '/analysis/'
+    | '/reports/'
     | '/analysis/site/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -149,9 +158,9 @@ export interface FileRouteTypes {
     | '/help'
     | '/livability'
     | '/planning'
-    | '/reports'
     | '/settings'
     | '/analysis'
+    | '/reports'
     | '/analysis/site/$id'
   id:
     | '__root__'
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/settings'
     | '/analysis/'
+    | '/reports/'
     | '/analysis/site/$id'
   fileRoutesById: FileRoutesById
 }
@@ -178,7 +188,7 @@ export interface RootRouteChildren {
   HelpRoute: typeof HelpRoute
   LivabilityRoute: typeof LivabilityRoute
   PlanningRoute: typeof PlanningRoute
-  ReportsRoute: typeof ReportsRoute
+  ReportsRoute: typeof ReportsRouteWithChildren
   SettingsRoute: typeof SettingsRoute
 }
 
@@ -261,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalysisIndexRouteImport
       parentRoute: typeof AnalysisRoute
     }
+    '/reports/': {
+      id: '/reports/'
+      path: '/'
+      fullPath: '/reports/'
+      preLoaderRoute: typeof ReportsIndexRouteImport
+      parentRoute: typeof ReportsRoute
+    }
     '/analysis/site/$id': {
       id: '/analysis/site/$id'
       path: '/site/$id'
@@ -285,6 +302,17 @@ const AnalysisRouteWithChildren = AnalysisRoute._addFileChildren(
   AnalysisRouteChildren,
 )
 
+interface ReportsRouteChildren {
+  ReportsIndexRoute: typeof ReportsIndexRoute
+}
+
+const ReportsRouteChildren: ReportsRouteChildren = {
+  ReportsIndexRoute: ReportsIndexRoute,
+}
+
+const ReportsRouteWithChildren =
+  ReportsRoute._addFileChildren(ReportsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiCopilotRoute: AiCopilotRoute,
@@ -294,9 +322,19 @@ const rootRouteChildren: RootRouteChildren = {
   HelpRoute: HelpRoute,
   LivabilityRoute: LivabilityRoute,
   PlanningRoute: PlanningRoute,
-  ReportsRoute: ReportsRoute,
+  ReportsRoute: ReportsRouteWithChildren,
   SettingsRoute: SettingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
