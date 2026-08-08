@@ -10,33 +10,186 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AiCopilotRouteImport } from './routes/ai-copilot'
+import { Route as AnalysisRouteImport } from './routes/analysis'
+import { Route as ChangeDetectionRouteImport } from './routes/change-detection'
+import { Route as DataRouteImport } from './routes/data'
+import { Route as HelpRouteImport } from './routes/help'
+import { Route as LivabilityRouteImport } from './routes/livability'
+import { Route as PlanningRouteImport } from './routes/planning'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as AnalysisIndexRouteImport } from './routes/analysis.index'
+import { Route as ReportsIndexRouteImport } from './routes/reports.index'
+import { Route as AnalysisSiteIdRouteImport } from './routes/analysis.site.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AiCopilotRoute = AiCopilotRouteImport.update({
+  id: '/ai-copilot',
+  path: '/ai-copilot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalysisRoute = AnalysisRouteImport.update({
+  id: '/analysis',
+  path: '/analysis',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangeDetectionRoute = ChangeDetectionRouteImport.update({
+  id: '/change-detection',
+  path: '/change-detection',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataRoute = DataRouteImport.update({
+  id: '/data',
+  path: '/data',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LivabilityRoute = LivabilityRouteImport.update({
+  id: '/livability',
+  path: '/livability',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanningRoute = PlanningRouteImport.update({
+  id: '/planning',
+  path: '/planning',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalysisIndexRoute = AnalysisIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AnalysisRoute,
+} as any)
+const ReportsIndexRoute = ReportsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ReportsRoute,
+} as any)
+const AnalysisSiteIdRoute = AnalysisSiteIdRouteImport.update({
+  id: '/site/$id',
+  path: '/site/$id',
+  getParentRoute: () => AnalysisRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai-copilot': typeof AiCopilotRoute
+  '/analysis': typeof AnalysisRouteWithChildren
+  '/change-detection': typeof ChangeDetectionRoute
+  '/data': typeof DataRoute
+  '/help': typeof HelpRoute
+  '/livability': typeof LivabilityRoute
+  '/planning': typeof PlanningRoute
+  '/reports': typeof ReportsRouteWithChildren
+  '/settings': typeof SettingsRoute
+  '/analysis/': typeof AnalysisIndexRoute
+  '/reports/': typeof ReportsIndexRoute
+  '/analysis/site/$id': typeof AnalysisSiteIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai-copilot': typeof AiCopilotRoute
+  '/change-detection': typeof ChangeDetectionRoute
+  '/data': typeof DataRoute
+  '/help': typeof HelpRoute
+  '/livability': typeof LivabilityRoute
+  '/planning': typeof PlanningRoute
+  '/settings': typeof SettingsRoute
+  '/analysis': typeof AnalysisIndexRoute
+  '/reports': typeof ReportsIndexRoute
+  '/analysis/site/$id': typeof AnalysisSiteIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai-copilot': typeof AiCopilotRoute
+  '/analysis': typeof AnalysisRouteWithChildren
+  '/change-detection': typeof ChangeDetectionRoute
+  '/data': typeof DataRoute
+  '/help': typeof HelpRoute
+  '/livability': typeof LivabilityRoute
+  '/planning': typeof PlanningRoute
+  '/reports': typeof ReportsRouteWithChildren
+  '/settings': typeof SettingsRoute
+  '/analysis/': typeof AnalysisIndexRoute
+  '/reports/': typeof ReportsIndexRoute
+  '/analysis/site/$id': typeof AnalysisSiteIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/ai-copilot'
+    | '/analysis'
+    | '/change-detection'
+    | '/data'
+    | '/help'
+    | '/livability'
+    | '/planning'
+    | '/reports'
+    | '/settings'
+    | '/analysis/'
+    | '/reports/'
+    | '/analysis/site/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/ai-copilot'
+    | '/change-detection'
+    | '/data'
+    | '/help'
+    | '/livability'
+    | '/planning'
+    | '/settings'
+    | '/analysis'
+    | '/reports'
+    | '/analysis/site/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/ai-copilot'
+    | '/analysis'
+    | '/change-detection'
+    | '/data'
+    | '/help'
+    | '/livability'
+    | '/planning'
+    | '/reports'
+    | '/settings'
+    | '/analysis/'
+    | '/reports/'
+    | '/analysis/site/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiCopilotRoute: typeof AiCopilotRoute
+  AnalysisRoute: typeof AnalysisRouteWithChildren
+  ChangeDetectionRoute: typeof ChangeDetectionRoute
+  DataRoute: typeof DataRoute
+  HelpRoute: typeof HelpRoute
+  LivabilityRoute: typeof LivabilityRoute
+  PlanningRoute: typeof PlanningRoute
+  ReportsRoute: typeof ReportsRouteWithChildren
+  SettingsRoute: typeof SettingsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +201,130 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ai-copilot': {
+      id: '/ai-copilot'
+      path: '/ai-copilot'
+      fullPath: '/ai-copilot'
+      preLoaderRoute: typeof AiCopilotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analysis': {
+      id: '/analysis'
+      path: '/analysis'
+      fullPath: '/analysis'
+      preLoaderRoute: typeof AnalysisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/change-detection': {
+      id: '/change-detection'
+      path: '/change-detection'
+      fullPath: '/change-detection'
+      preLoaderRoute: typeof ChangeDetectionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data': {
+      id: '/data'
+      path: '/data'
+      fullPath: '/data'
+      preLoaderRoute: typeof DataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/livability': {
+      id: '/livability'
+      path: '/livability'
+      fullPath: '/livability'
+      preLoaderRoute: typeof LivabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planning': {
+      id: '/planning'
+      path: '/planning'
+      fullPath: '/planning'
+      preLoaderRoute: typeof PlanningRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analysis/': {
+      id: '/analysis/'
+      path: '/'
+      fullPath: '/analysis/'
+      preLoaderRoute: typeof AnalysisIndexRouteImport
+      parentRoute: typeof AnalysisRoute
+    }
+    '/reports/': {
+      id: '/reports/'
+      path: '/'
+      fullPath: '/reports/'
+      preLoaderRoute: typeof ReportsIndexRouteImport
+      parentRoute: typeof ReportsRoute
+    }
+    '/analysis/site/$id': {
+      id: '/analysis/site/$id'
+      path: '/site/$id'
+      fullPath: '/analysis/site/$id'
+      preLoaderRoute: typeof AnalysisSiteIdRouteImport
+      parentRoute: typeof AnalysisRoute
+    }
   }
 }
 
+interface AnalysisRouteChildren {
+  AnalysisIndexRoute: typeof AnalysisIndexRoute
+  AnalysisSiteIdRoute: typeof AnalysisSiteIdRoute
+}
+
+const AnalysisRouteChildren: AnalysisRouteChildren = {
+  AnalysisIndexRoute: AnalysisIndexRoute,
+  AnalysisSiteIdRoute: AnalysisSiteIdRoute,
+}
+
+const AnalysisRouteWithChildren = AnalysisRoute._addFileChildren(
+  AnalysisRouteChildren,
+)
+
+interface ReportsRouteChildren {
+  ReportsIndexRoute: typeof ReportsIndexRoute
+}
+
+const ReportsRouteChildren: ReportsRouteChildren = {
+  ReportsIndexRoute: ReportsIndexRoute,
+}
+
+const ReportsRouteWithChildren =
+  ReportsRoute._addFileChildren(ReportsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiCopilotRoute: AiCopilotRoute,
+  AnalysisRoute: AnalysisRouteWithChildren,
+  ChangeDetectionRoute: ChangeDetectionRoute,
+  DataRoute: DataRoute,
+  HelpRoute: HelpRoute,
+  LivabilityRoute: LivabilityRoute,
+  PlanningRoute: PlanningRoute,
+  ReportsRoute: ReportsRouteWithChildren,
+  SettingsRoute: SettingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
