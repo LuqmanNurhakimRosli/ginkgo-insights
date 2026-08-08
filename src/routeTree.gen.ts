@@ -19,6 +19,8 @@ import { Route as LivabilityRouteImport } from './routes/livability'
 import { Route as PlanningRouteImport } from './routes/planning'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as AnalysisIndexRouteImport } from './routes/analysis.index'
+import { Route as AnalysisSiteIdRouteImport } from './routes/analysis.site.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -70,11 +72,21 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnalysisIndexRoute = AnalysisIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AnalysisRoute,
+} as any)
+const AnalysisSiteIdRoute = AnalysisSiteIdRouteImport.update({
+  id: '/site/$id',
+  path: '/site/$id',
+  getParentRoute: () => AnalysisRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-copilot': typeof AiCopilotRoute
-  '/analysis': typeof AnalysisRoute
+  '/analysis': typeof AnalysisRouteWithChildren
   '/change-detection': typeof ChangeDetectionRoute
   '/data': typeof DataRoute
   '/help': typeof HelpRoute
@@ -82,11 +94,12 @@ export interface FileRoutesByFullPath {
   '/planning': typeof PlanningRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/analysis/': typeof AnalysisIndexRoute
+  '/analysis/site/$id': typeof AnalysisSiteIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-copilot': typeof AiCopilotRoute
-  '/analysis': typeof AnalysisRoute
   '/change-detection': typeof ChangeDetectionRoute
   '/data': typeof DataRoute
   '/help': typeof HelpRoute
@@ -94,12 +107,14 @@ export interface FileRoutesByTo {
   '/planning': typeof PlanningRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/analysis': typeof AnalysisIndexRoute
+  '/analysis/site/$id': typeof AnalysisSiteIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/ai-copilot': typeof AiCopilotRoute
-  '/analysis': typeof AnalysisRoute
+  '/analysis': typeof AnalysisRouteWithChildren
   '/change-detection': typeof ChangeDetectionRoute
   '/data': typeof DataRoute
   '/help': typeof HelpRoute
@@ -107,6 +122,8 @@ export interface FileRoutesById {
   '/planning': typeof PlanningRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/analysis/': typeof AnalysisIndexRoute
+  '/analysis/site/$id': typeof AnalysisSiteIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,11 +138,12 @@ export interface FileRouteTypes {
     | '/planning'
     | '/reports'
     | '/settings'
+    | '/analysis/'
+    | '/analysis/site/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/ai-copilot'
-    | '/analysis'
     | '/change-detection'
     | '/data'
     | '/help'
@@ -133,6 +151,8 @@ export interface FileRouteTypes {
     | '/planning'
     | '/reports'
     | '/settings'
+    | '/analysis'
+    | '/analysis/site/$id'
   id:
     | '__root__'
     | '/'
@@ -145,12 +165,14 @@ export interface FileRouteTypes {
     | '/planning'
     | '/reports'
     | '/settings'
+    | '/analysis/'
+    | '/analysis/site/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiCopilotRoute: typeof AiCopilotRoute
-  AnalysisRoute: typeof AnalysisRoute
+  AnalysisRoute: typeof AnalysisRouteWithChildren
   ChangeDetectionRoute: typeof ChangeDetectionRoute
   DataRoute: typeof DataRoute
   HelpRoute: typeof HelpRoute
@@ -232,13 +254,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/analysis/': {
+      id: '/analysis/'
+      path: '/'
+      fullPath: '/analysis/'
+      preLoaderRoute: typeof AnalysisIndexRouteImport
+      parentRoute: typeof AnalysisRoute
+    }
+    '/analysis/site/$id': {
+      id: '/analysis/site/$id'
+      path: '/site/$id'
+      fullPath: '/analysis/site/$id'
+      preLoaderRoute: typeof AnalysisSiteIdRouteImport
+      parentRoute: typeof AnalysisRoute
+    }
   }
 }
+
+interface AnalysisRouteChildren {
+  AnalysisIndexRoute: typeof AnalysisIndexRoute
+  AnalysisSiteIdRoute: typeof AnalysisSiteIdRoute
+}
+
+const AnalysisRouteChildren: AnalysisRouteChildren = {
+  AnalysisIndexRoute: AnalysisIndexRoute,
+  AnalysisSiteIdRoute: AnalysisSiteIdRoute,
+}
+
+const AnalysisRouteWithChildren = AnalysisRoute._addFileChildren(
+  AnalysisRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiCopilotRoute: AiCopilotRoute,
-  AnalysisRoute: AnalysisRoute,
+  AnalysisRoute: AnalysisRouteWithChildren,
   ChangeDetectionRoute: ChangeDetectionRoute,
   DataRoute: DataRoute,
   HelpRoute: HelpRoute,
