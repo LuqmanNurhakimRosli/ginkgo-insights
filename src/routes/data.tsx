@@ -23,7 +23,7 @@ function DataPage() {
           <table className="w-full text-left text-[12.5px]">
             <thead className="bg-surface text-muted-foreground">
               <tr>
-                {["Dataset", "Provider", "Type", "Resolution", "Updated", "Status"].map((h) => (
+                {["Dataset", "Location", "Type", "Period", "Updated", "Status"].map((h) => (
                   <th key={h} className="px-4 py-2.5 font-medium">{h}</th>
                 ))}
               </tr>
@@ -32,9 +32,9 @@ function DataPage() {
               {datasets.map((d) => (
                 <tr key={d.id} className="border-t border-border">
                   <td className="px-4 py-2.5 font-medium">{d.name}</td>
-                  <td className="px-4 py-2.5 text-muted-foreground">{d.provider}</td>
+                  <td className="px-4 py-2.5 text-muted-foreground">{d.location}</td>
                   <td className="px-4 py-2.5 text-muted-foreground">{d.type}</td>
-                  <td className="num px-4 py-2.5 text-muted-foreground">{d.resolution}</td>
+                  <td className="num px-4 py-2.5 text-muted-foreground">{d.period}</td>
                   <td className="num px-4 py-2.5 text-muted-foreground">{d.updated}</td>
                   <td className="px-4 py-2.5">
                     <span className="rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success">
