@@ -63,9 +63,9 @@ export function MapCanvas({
   interactive = true,
   overlay,
 }: {
-  className?: string;
-  interactive?: boolean;
-  overlay?: "change" | "flood" | "landuse" | "accessibility" | "suitability";
+  className?: string | undefined;
+  interactive?: boolean | undefined;
+  overlay?: "change" | "flood" | "landuse" | "accessibility" | "suitability" | undefined;
 }) {
   const {
     activeLayers,
