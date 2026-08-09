@@ -14,13 +14,13 @@ export function MetricCard({ metric, icon }: { metric: SpatialMetric; icon?: Rea
   const Arrow =
     metric.direction === "up" ? ArrowUp : metric.direction === "down" ? ArrowDown : Minus;
   return (
-    <div className="ginkgo-panel px-3.5 py-3 transition-shadow hover:shadow-[var(--shadow-panel)]">
+    <div className="ginkgo-panel px-4 py-3.5 transition-shadow hover:shadow-[var(--shadow-panel)]">
       <div className="flex items-center gap-2">
         {icon}
         <span className="label-caps">{metric.label}</span>
       </div>
       <div className="mt-2 flex items-end gap-1">
-        <span className="num text-[22px] font-semibold leading-none">{metric.value}</span>
+        <span className="num text-[24px] font-bold leading-none tracking-tight">{metric.value}</span>
         {metric.unit && (
           <span className="pb-0.5 text-[12px] text-muted-foreground">{metric.unit}</span>
         )}
@@ -54,8 +54,8 @@ export function ProgressMetric({
   return (
     <div>
       <div className="flex items-baseline justify-between">
-        <span className="text-[12.5px] font-medium">{label}</span>
-        <span className="num text-[12.5px] text-muted-foreground">
+        <span className="text-[13px] font-semibold">{label}</span>
+        <span className="num text-[12.5px] font-medium text-muted-foreground">
           {value}/{max}
         </span>
       </div>
@@ -86,7 +86,7 @@ export function ScoreCard({
       <div>
         <div className="label-caps">{label}</div>
         <div className="mt-1 flex items-end gap-1.5">
-          <span className="num text-[40px] font-semibold leading-none text-primary">{score}</span>
+          <span className="num text-[40px] font-bold leading-none tracking-tight text-primary">{score}</span>
           <span className="pb-1.5 text-[13px] text-muted-foreground">{suffix}</span>
         </div>
       </div>
@@ -110,8 +110,8 @@ export function EvidenceCard({
 }) {
   return (
     <div className="ginkgo-panel px-4 py-4">
-      <h3 className="text-[13.5px] font-semibold">{title}</h3>
-      <ul className="mt-2.5 space-y-1.5 text-[12.5px]">
+      <h3 className="text-[16px] font-semibold">{title}</h3>
+      <ul className="mt-3 space-y-2 text-[13px] leading-snug">
         {positives.map((p) => (
           <li key={p} className="flex gap-2">
             <span className="text-success">+</span>

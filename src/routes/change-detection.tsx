@@ -69,9 +69,9 @@ function ChangeDetectionPage() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1fr)_330px]">
+      <div className="grid grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="overflow-hidden rounded-lg border border-border bg-card">
-          <div className="h-[520px]">
+          <div className="h-[600px]">
             {mode === "overlay" ? <MapCanvas overlay="change" /> : <MapComparison mode={mode === "side" ? "side" : "swipe"} />}
           </div>
           <MapLegend />
@@ -79,8 +79,8 @@ function ChangeDetectionPage() {
 
         <aside className="space-y-4">
           <div className="ginkgo-panel px-4 py-4">
-            <h2 className="text-[13.5px] font-semibold">Change Summary</h2>
-            <dl className="mt-3 space-y-2 text-[12.5px]">
+            <h2 className="text-[16px] font-semibold">Change summary</h2>
+            <dl className="mt-3 space-y-2 text-[13px]">
               {[
                 ["Built-up", `+${cd.builtUpPct}%`],
                 ["Vegetation", `${cd.vegetationPct}%`],
@@ -108,7 +108,7 @@ function ChangeDetectionPage() {
           </div>
 
           <div className="ginkgo-panel px-4 py-4">
-            <h2 className="text-[13.5px] font-semibold">Change Classes</h2>
+            <h2 className="text-[16px] font-semibold">Change classes</h2>
             <ul className="mt-2.5 space-y-2 text-[12.5px]">
               {cd.classes.map((c) => (
                 <li key={c.id} className="flex items-center gap-2">

@@ -22,9 +22,9 @@ function CopilotPage() {
         title="AI Copilot"
         subtitle="Ask Ginkgo → Ginkgo analyzes → Ginkgo changes the map → Ginkgo explains why."
       />
-      <div className="grid grid-cols-1 gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1fr)_460px]">
-        <MapWorkspace height="h-[calc(100vh-220px)]" showTime={false} />
-        <AICopilot className="h-[calc(100vh-220px)]" expandable={false} />
+      <div className="grid grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_460px]">
+        <MapWorkspace height="h-[calc(100vh-232px)]" showTime={false} />
+        <AICopilot className="h-[calc(100vh-232px)]" expandable={false} />
       </div>
     </div>
   );

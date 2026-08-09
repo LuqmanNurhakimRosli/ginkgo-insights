@@ -18,13 +18,13 @@ function DataPage() {
   return (
     <div>
       <PageHeader title="Data Sources" subtitle="Every layer, its provenance, resolution and refresh cadence." />
-      <div className="px-5 py-5">
+      <div className="px-6 py-6">
         <div className="overflow-hidden rounded-lg border border-border bg-card">
-          <table className="w-full text-left text-[12.5px]">
+          <table className="w-full text-left text-[13px]">
             <thead className="bg-surface text-muted-foreground">
               <tr>
                 {["Dataset", "Location", "Type", "Period", "Updated", "Status"].map((h) => (
-                  <th key={h} className="px-4 py-2.5 font-medium">{h}</th>
+                  <th key={h} className="px-4 py-3 text-[11.5px] font-semibold uppercase tracking-wide">{h}</th>
                 ))}
               </tr>
             </thead>

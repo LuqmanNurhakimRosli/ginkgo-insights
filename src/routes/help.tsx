@@ -36,7 +36,7 @@ function HelpPage() {
   return (
     <div>
       <PageHeader title="Methodology & Help" subtitle="What Ginkgo measures, how it measures it, and where to be careful." />
-      <div className="grid grid-cols-1 gap-4 px-5 py-5 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 px-6 py-6 md:grid-cols-2">
         {sections.map((s) => (
           <article key={s.title} className="ginkgo-panel px-4 py-4">
             <h2 className="text-[13.5px] font-semibold">{s.title}</h2>

@@ -10,6 +10,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 }
 
+/** Single shared application header, used on every route via AppShell. */
+export const AppHeader = TopNav;
+
 export function PageHeader({
   title,
   subtitle,
@@ -20,14 +23,16 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border bg-card px-6 py-4">
+    <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border bg-card px-6 py-5">
       <div>
-        <h1 className="text-[20px] font-semibold tracking-tight">{title}</h1>
+        <h1 className="text-[24px] font-semibold leading-tight tracking-tight">{title}</h1>
         {subtitle && (
-          <p className="mt-1 max-w-2xl text-[13px] text-muted-foreground">{subtitle}</p>
+          <p className="mt-1.5 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">
+            {subtitle}
+          </p>
         )}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }
