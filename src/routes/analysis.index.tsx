@@ -31,22 +31,22 @@ function AnalysisPage() {
         title="Map & Analysis"
         subtitle="Explore layers, select parcels and inspect spatial indicators for the current study area."
       />
-      <div className="grid grid-cols-1 gap-5 px-5 py-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <div>
-          <MapWorkspace height="h-[560px]" overlay="landuse" />
-          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 px-6 py-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-4">
+          <MapWorkspace height="h-[600px]" overlay="landuse" />
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
             {kpis.map((m) => (
               <MetricCard key={m.id} metric={m} />
             ))}
           </div>
-          <div className="ginkgo-panel mt-4 px-4 py-4">
-            <h2 className="text-[13.5px] font-semibold">Land Cover · {lc.period}</h2>
+          <div className="ginkgo-panel px-4 py-4">
+            <h2 className="text-[16px] font-semibold">Land cover · {lc.period}</h2>
             <div className="mt-3">
               <LandCoverDonut data={lc} />
             </div>
           </div>
         </div>
-        <AICopilot className="h-[720px]" />
+        <AICopilot className="h-[calc(100vh-172px)] xl:sticky xl:top-[72px]" />
       </div>
     </div>
   );
