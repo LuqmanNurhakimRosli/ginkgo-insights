@@ -34,20 +34,20 @@ function ReportsPage() {
           </select>
         }
       />
-      <div className="px-5 py-5">
-        <article className="ginkgo-panel mx-auto max-w-3xl px-7 py-7">
+      <div className="px-6 py-6">
+        <article className="ginkgo-panel mx-auto flex max-h-[calc(100vh-200px)] max-w-3xl flex-col overflow-hidden px-8 py-7">
           <div className="label-caps">{report.id} · {report.status} · {report.generatedAt}</div>
-          <h1 className="mt-2 text-[20px] font-semibold tracking-tight">{report.title}</h1>
+          <h1 className="mt-2 text-[24px] font-semibold tracking-tight">{report.title}</h1>
           <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{report.summary}</p>
-          <div className="mt-5 space-y-4">
+          <div className="mt-6 flex-1 space-y-5 overflow-y-auto pr-1">
             {report.sections.map((s) => (
               <section key={s.title}>
-                <h2 className="text-[13.5px] font-semibold">{s.title}</h2>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">{s.body}</p>
+                <h2 className="text-[16px] font-semibold">{s.title}</h2>
+                <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{s.body}</p>
               </section>
             ))}
           </div>
-          <div className="mt-6 flex flex-wrap gap-2">
+          <div className="mt-6 flex flex-wrap gap-2 border-t border-border pt-4">
             {["Export PDF", "Export JSON", "Export GeoJSON"].map((l) => (
               <button key={l} className="rounded-md border border-border px-3 py-2 text-[12.5px] font-semibold hover:bg-secondary">
                 {l}

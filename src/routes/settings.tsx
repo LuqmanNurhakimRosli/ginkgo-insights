@@ -21,7 +21,7 @@ function SettingsPage() {
   return (
     <div>
       <PageHeader title="Settings" subtitle="Provider configuration and workspace defaults." />
-      <div className="grid grid-cols-1 gap-4 px-5 py-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 px-6 py-6 lg:grid-cols-2">
         <div className="ginkgo-panel px-4 py-4">
           <h2 className="text-[13.5px] font-semibold">AI Provider</h2>
           <p className="mt-1.5 text-[12.5px] text-muted-foreground">

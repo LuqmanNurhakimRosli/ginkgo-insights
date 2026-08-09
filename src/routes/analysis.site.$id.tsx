@@ -35,13 +35,13 @@ function SiteDetail() {
   return (
     <div>
       <PageHeader title={`${site.name} — ${site.locality}`} subtitle={`${site.areaHa} ha · ${site.dominantLandUse}`} />
-      <div className="grid grid-cols-1 gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_400px]">
         <MapWorkspace height="h-[460px]" />
         <div className="space-y-4">
           <ScoreCard score={lv.score} band={lv.band} label="Livability Index" />
           <ScoreCard score={su.score} band={su.classification} label="Development Suitability" />
           <div className="ginkgo-panel space-y-3 px-4 py-4">
-            <h2 className="text-[13.5px] font-semibold">Livability Dimensions</h2>
+            <h2 className="text-[16px] font-semibold">Livability Dimensions</h2>
             <LivabilityRadar dimensions={lv.dimensions} />
             {lv.dimensions.map((d) => (
               <ProgressMetric key={d.id} label={d.label} value={d.score} max={d.weight} note={d.note} />
@@ -49,7 +49,7 @@ function SiteDetail() {
           </div>
           <EvidenceCard title="Why this score?" positives={lv.positives} negatives={lv.negatives} />
           <div className="ginkgo-panel px-4 py-4">
-            <h2 className="text-[13.5px] font-semibold">Accessibility & Resilience</h2>
+            <h2 className="text-[16px] font-semibold">Accessibility & Resilience</h2>
             <div className="mt-3 space-y-3">
               <ProgressMetric label="Accessibility" value={ac.score} note={`Road access ${ac.roadAccess} · Connectivity ${ac.connectivity}`} />
               <ProgressMetric
