@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Check, TriangleAlert } from "lucide-react";
+import { Check, TriangleAlert, ShieldCheck } from "lucide-react";
 import { PageHeader } from "@/components/layout/AppShell";
-import { MapWorkspace } from "@/components/map/MapWorkspace";
-import { ProgressMetric, ScoreCard } from "@/components/metrics/MetricCard";
+import { MapCanvas } from "@/components/map/MapCanvas";
+import { ScoreDial } from "@/components/metrics/ScoreDial";
 import { flood } from "@/data/flood";
 import { sites } from "@/data/sites";
 import { recommendations, suitability, suitabilityDisclaimer } from "@/data/suitability";
@@ -11,10 +11,8 @@ import { useGinkgo, useSelectedSite } from "@/state/ginkgo-store";
 export const Route = createFileRoute("/planning")({
   head: () => ({
     meta: [
-      { title: "Planning Suitability — Ginkgo" },
-      { name: "description", content: "Indicative spatial screening for sustainable development, with transparent criteria weights." },
-      { property: "og:title", content: "Planning Suitability — Ginkgo" },
-      { property: "og:description", content: "Indicative spatial screening for sustainable development, with transparent criteria weights." },
+      { title: "GINKGO — SUITABILITY ANALYSIS" },
+      { name: "description", content: "Indicative spatial screening for sustainable development with transparent criteria weights." },
     ],
   }),
   component: PlanningPage,
@@ -36,12 +34,16 @@ function PlanningPage() {
   };
 
   return (
-    <div>
+    <div className="flex flex-col h-full w-full bg-[#0B0C0E] text-[#F5F5F4] font-mono">
       <PageHeader
-        title="Planning Suitability"
-        subtitle="Indicative spatial screening for sustainable development."
+        title="DEVELOPMENT SUITABILITY SCREENING"
+        subtitle="MULTI-CRITERIA SPATIAL SCREENING FOR SUSTAINABLE URBAN & RURAL DEVELOPMENT."
         actions={
-          <select value={site.id} onChange={(e) => selectSite(e.target.value)} className="rounded-md border border-border px-3 py-2 text-[13px]">
+          <select
+            value={site.id}
+            onChange={(e) => selectSite(e.target.value)}
+            className="rounded border border-white/10 bg-[#16171A] px-3 py-1.5 text-[11px] uppercase text-[#F5F5F4] outline-none"
+          >
             {sites.map((s) => (
               <option key={s.id} value={s.id}>{s.name}</option>
             ))}
@@ -49,77 +51,102 @@ function PlanningPage() {
         }
       />
 
-      {/* Criteria + recommendation are the subject; the map supports them. */}
-      <div className="grid grid-cols-1 gap-6 px-6 py-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <div className="space-y-4">
-              <ScoreCard score={su.score} band={su.classification} label={`${site.name} Suitability`} />
-              <div className="ginkgo-panel px-4 py-4">
-                <h2 className="text-[16px] font-semibold">Criteria &amp; weights</h2>
-                <div className="mt-3 space-y-3.5">
-                  {su.criteria.map((c) => (
-                    <ProgressMetric key={c.label} label={`${c.label} (${c.weightPct}%)`} value={c.score} />
-                  ))}
-                </div>
-              </div>
+      <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-12 overflow-y-auto">
+        <div className="lg:col-span-8 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="rounded border border-white/10 bg-[#16171A] p-6 shadow-2xl flex flex-col items-center justify-center">
+              <ScoreDial
+                score={su.score}
+                label={`${site.name} SUITABILITY`}
+                sublabel={`CLASS: ${su.classification.toUpperCase()}`}
+              />
             </div>
 
-            <div className="ginkgo-panel px-4 py-4">
-              <h2 className="text-[16px] font-semibold">Planning recommendation</h2>
-              <p className="mt-2 text-[13px] leading-relaxed">{rec.headline}</p>
-              <ul className="mt-3.5 space-y-2 text-[13px] leading-snug">
-                {rec.evidence.map((e) => (
-                  <li key={e} className="flex gap-2"><Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />{e}</li>
-                ))}
-                {rec.constraints.map((c) => (
-                  <li key={c} className="flex gap-2"><TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />{c}</li>
-                ))}
-              </ul>
-              <ol className="mt-3.5 list-decimal space-y-1.5 pl-4 text-[13px] leading-snug">
-                {rec.actions.map((a) => <li key={a}>{a}</li>)}
-              </ol>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button onClick={highlight} className="rounded-md bg-primary px-3.5 py-2 text-[13px] font-semibold text-primary-foreground">
-                  Highlight Candidate Areas
-                </button>
-                <Link to="/reports" className="rounded-md border border-border px-3.5 py-2 text-[13px] font-semibold hover:bg-secondary">
-                  Generate Report
-                </Link>
+            <div className="rounded border border-white/10 bg-[#16171A] p-5 shadow-2xl space-y-3">
+              <div className="text-[11px] font-bold uppercase text-[#5EEAD4] border-b border-white/10 pb-2">
+                CRITERIA WEIGHTING MATRIX
               </div>
-              <p className="mt-3 text-[11px] text-muted-foreground">
-                Flood exposure: {fl.exposure} (indicative) · Planner review required.
-              </p>
+              <div className="space-y-3">
+                {su.criteria.map((c) => (
+                  <div key={c.label} className="text-[10px] uppercase">
+                    <div className="flex justify-between mb-1 text-[#9CA3AF]">
+                      <span>{c.label} ({c.weightPct}%)</span>
+                      <span className="text-[#F5F5F4] font-bold num">{c.score}/100</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-[#5EEAD4]" style={{ width: `${c.score}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          <p className="rounded-lg border border-warning/40 bg-warning-soft px-4 py-3 text-[12.5px] leading-relaxed text-foreground">
+          <div className="rounded border border-white/10 bg-[#16171A] p-5 shadow-2xl space-y-3">
+            <div className="text-[12px] font-bold uppercase text-[#5EEAD4] border-b border-white/10 pb-2">
+              AI PLANNING RECOMMENDATION
+            </div>
+            <p className="text-[11px] text-[#F5F5F4] leading-relaxed">{rec.headline}</p>
+
+            <div className="space-y-2 text-[10px] uppercase">
+              {rec.evidence.map((e) => (
+                <div key={e} className="flex items-center gap-2 text-[#22C55E]">
+                  <Check className="h-3.5 w-3.5" />
+                  <span>{e}</span>
+                </div>
+              ))}
+              {rec.constraints.map((c) => (
+                <div key={c} className="flex items-center gap-2 text-[#F97316]">
+                  <TriangleAlert className="h-3.5 w-3.5" />
+                  <span>{c}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 flex gap-2 pt-2 border-t border-white/10">
+              <button
+                onClick={highlight}
+                className="flex-1 rounded bg-[#5EEAD4] py-2 text-[11px] font-bold text-[#0B0C0E] uppercase hover:opacity-90"
+              >
+                HIGHLIGHT CANDIDATE PARCELS
+              </button>
+              <Link
+                to="/reports"
+                className="rounded border border-white/10 bg-white/5 px-4 py-2 text-[11px] text-[#F5F5F4] hover:bg-white/10 uppercase"
+              >
+                GENERATE REPORT ↗
+              </Link>
+            </div>
+          </div>
+
+          <p className="rounded border border-[#EAB308]/30 bg-[#EAB308]/10 p-3 text-[10px] text-[#EAB308] uppercase leading-relaxed">
             {suitabilityDisclaimer}
           </p>
         </div>
 
-        <aside className="space-y-4">
-          <div>
-            <div className="label-caps mb-2">Suitability surface</div>
-            <MapWorkspace height="h-[300px]" overlay="suitability" showTime={false} compact />
-          </div>
-          <div className="ginkgo-panel px-4 py-4">
-            <h2 className="text-[16px] font-semibold">Legend</h2>
-            <div className="mt-3 space-y-2">
-              {[
-                ["Highly Suitable", "#3fb08c"],
-                ["Suitable", "#8cc36f"],
-                ["Conditional", "#e0a63c"],
-                ["Low Suitability", "#e2643f"],
-              ].map(([label, color]) => (
-                <span key={label} className="flex items-center gap-2.5 text-[12.5px] text-muted-foreground">
-                  <span className="h-2.5 w-2.5 rounded-[3px]" style={{ backgroundColor: color }} />
-                  {label}
-                </span>
-              ))}
+        <div className="lg:col-span-4 space-y-4">
+          <div className="h-64 w-full rounded border border-white/10 bg-[#16171A] overflow-hidden relative shadow-2xl">
+            <div className="absolute top-2 left-2 z-20 rounded bg-[#0B0C0E]/80 px-2 py-0.5 text-[9px] text-[#5EEAD4] font-bold">
+              SUITABILITY INSET
             </div>
+            <MapCanvas overlay="suitability" interactive={false} />
           </div>
-        </aside>
+
+          <div className="rounded border border-white/10 bg-[#16171A] p-4 shadow-2xl space-y-2 text-[10px] uppercase">
+            <div className="text-[11px] font-bold text-[#5EEAD4] border-b border-white/10 pb-1">CLASSIFICATION LEGEND</div>
+            {[
+              ["Highly Suitable", "#22C55E"],
+              ["Suitable", "#5EEAD4"],
+              ["Conditional", "#EAB308"],
+              ["Low Suitability", "#EF4444"],
+            ].map(([label, color]) => (
+              <div key={label} className="flex items-center gap-2 text-[#9CA3AF]">
+                <span className="h-2.5 w-2.5 rounded" style={{ backgroundColor: color }} />
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

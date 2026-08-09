@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { GinkgoMark } from "@/components/brand/GinkgoLogo";
 import type { AIMessage } from "@/types";
 import { cn } from "@/lib/utils";
 import { AISpatialEvidence } from "./AISpatialEvidence";
 import { AIToolAction } from "./AIToolAction";
 
-/** Human-readable label for an internal tool call. Never show raw code to users. */
 const toolLabels: Record<string, string> = {
   getSuitabilityScore: "Reviewed development suitability scoring",
   getLivability: "Reviewed livability dimensions",
@@ -17,8 +15,8 @@ const toolLabels: Record<string, string> = {
   getLandCover: "Analysed land cover composition",
   getLoadData: "Loaded study-area datasets",
   getSite: "Loaded parcel attributes",
-  highlightFeatures: "Updated the map highlights",
-  zoomToFeatures: "Recentred the map",
+  highlightFeatures: "Updated map highlights",
+  zoomToFeatures: "Recentred camera",
 };
 
 function humanise(name: string) {
@@ -34,18 +32,19 @@ function humanise(name: string) {
 function ReasoningTrail({ names }: { names: string[] }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="mt-3 border-t border-border pt-2.5">
+    <div className="mt-3 border-t border-white/5 pt-2">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+        className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-[#9CA3AF] hover:text-[#F5F5F4]"
       >
-        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
-        Show how this was calculated
+        <ChevronDown className={cn("h-3 w-3 transition-transform", open && "rotate-180")} />
+        Show calculation trace
       </button>
       {open && (
-        <ol className="mt-2 space-y-1.5 pl-5 text-[12px] leading-snug text-muted-foreground">
+        <ol className="mt-2 space-y-1 font-mono text-[10px] text-[#9CA3AF]">
           {names.map((n) => (
-            <li key={n} className="list-decimal">
+            <li key={n} className="flex items-center gap-1.5">
+              <span className="text-[#5EEAD4]">•</span>
               {humanise(n)}
             </li>
           ))}
@@ -58,8 +57,8 @@ function ReasoningTrail({ names }: { names: string[] }) {
 export function AIMessageBubble({ message }: { message: AIMessage }) {
   if (message.role === "user") {
     return (
-      <div className="flex justify-end fade-up">
-        <div className="max-w-[86%] rounded-lg rounded-br-sm bg-primary px-4 py-3 text-[13px] leading-relaxed text-primary-foreground">
+      <div className="flex justify-end">
+        <div className="max-w-[88%] rounded border border-[#5EEAD4]/30 bg-[#5EEAD4]/10 p-3 text-[12.5px] leading-relaxed text-[#F5F5F4]">
           {message.text}
         </div>
       </div>
@@ -67,24 +66,28 @@ export function AIMessageBubble({ message }: { message: AIMessage }) {
   }
 
   return (
-    <div className="fade-up">
-      <div className="mb-2 flex items-center gap-2">
-        <GinkgoMark className="h-4.5 w-4.5" />
-        <span className="text-[12.5px] font-semibold">Ginkgo</span>
+    <div>
+      <div className="mb-1.5 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-[#9CA3AF]">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#5EEAD4]" />
+        <span>GINKGO COPILOT</span>
       </div>
 
-      <div className="rounded-lg rounded-tl-sm border border-border bg-card px-4 py-3.5">
-        <p className="whitespace-pre-line text-[13px] leading-relaxed">{message.text}</p>
+      <div className="rounded border border-white/10 bg-[#16171A] p-3.5 text-[#F5F5F4]">
+        <p className="whitespace-pre-line text-[12.5px] leading-relaxed text-[#F5F5F4]">{message.text}</p>
+
         <AISpatialEvidence evidence={message.evidence} constraints={message.constraints} />
 
         {message.recommendation && (
-          <div className="mt-3.5 rounded-md border border-primary/25 bg-primary-soft px-3.5 py-3">
-            <div className="label-caps mb-1.5 text-accent-foreground">
+          <div className="mt-3 rounded border border-[#5EEAD4]/20 bg-[#5EEAD4]/5 p-3">
+            <div className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[#5EEAD4]">
               {message.recommendation.title}
             </div>
-            <ol className="list-decimal space-y-1 pl-4 text-[13px] leading-snug">
+            <ol className="mt-1 space-y-1 font-mono text-[11px] text-[#F5F5F4]">
               {message.recommendation.actions.map((a) => (
-                <li key={a}>{a}</li>
+                <li key={a} className="flex items-start gap-1.5">
+                  <span className="text-[#5EEAD4]">↗</span>
+                  <span>{a}</span>
+                </li>
               ))}
             </ol>
           </div>

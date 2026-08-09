@@ -1,15 +1,18 @@
 import { geminiProvider } from "./geminiProvider";
 import { mockAIProvider } from "./mockProvider";
+import { ollamaProvider, groqProvider, huggingFaceProvider } from "./openSourceProviders";
 import type { AIProvider } from "./types";
 
 export type { AIProvider, AIRequest, AIResponse } from "./types";
 
 export const providers: Record<string, AIProvider> = {
   mock: mockAIProvider,
+  ollama: ollamaProvider,
+  groq: groqProvider,
+  huggingface: huggingFaceProvider,
   gemini: geminiProvider,
 };
 
-/** VITE_AI_PROVIDER=mock (default, always works) | gemini */
 export function getAIProvider(override?: string): AIProvider {
   const key = override ?? import.meta.env["VITE_AI_PROVIDER"] ?? "mock";
   return providers[String(key)] ?? mockAIProvider;

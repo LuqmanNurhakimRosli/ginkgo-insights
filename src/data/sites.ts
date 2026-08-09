@@ -1,11 +1,11 @@
 import type { Site } from "@/types";
 
-/** Deterministic prototype study sites (Putrajaya urban + Kampung rural). */
+/** Track B Geospatial Challenge Study Sites (Urban + Rural). */
 export const sites: Site[] = [
   {
     id: "site-a",
     name: "Site A",
-    locality: "Presint 11 Corridor, Putrajaya",
+    locality: "Presint 11 Urban Corridor, Putrajaya",
     areaHa: 24.6,
     dominantLandUse: "Residential",
     center: [42, 44],
@@ -22,14 +22,14 @@ export const sites: Site[] = [
     suitability: 82,
     floodRisk: "Moderate",
     roadAccess: "Very Good",
-    tags: ["Urban", "Housing candidate"],
+    tags: ["Urban", "Putrajaya", "Sentinel-2 T1/T2"],
   },
   {
     id: "site-b",
     name: "Site B",
-    locality: "Presint 14 East Corridor, Putrajaya",
+    locality: "Presint 14 Transit Corridor, Putrajaya",
     areaHa: 31.2,
-    dominantLandUse: "Mixed Use",
+    dominantLandUse: "Mixed Commercial",
     center: [70, 36],
     polygon: [
       [60, 24],
@@ -43,12 +43,12 @@ export const sites: Site[] = [
     suitability: 88,
     floodRisk: "Low",
     roadAccess: "Excellent",
-    tags: ["Urban", "Transit adjacent"],
+    tags: ["Urban", "Putrajaya", "Commercial"],
   },
   {
     id: "site-c",
     name: "Site C",
-    locality: "Sungai Buah Floodplain",
+    locality: "Sungai Buah Floodplain (Rural)",
     areaHa: 18.9,
     dominantLandUse: "Vacant / Bare Land",
     center: [38, 74],
@@ -64,14 +64,14 @@ export const sites: Site[] = [
     suitability: 58,
     floodRisk: "High",
     roadAccess: "Moderate",
-    tags: ["Floodplain", "Review required"],
+    tags: ["Rural", "Sungai Buah", "Floodplain"],
   },
   {
     id: "site-d",
     name: "Site D",
-    locality: "Kampung Sri Damai (Rural)",
+    locality: "Kampung Sri Damai (Rural Forest)",
     areaHa: 42.4,
-    dominantLandUse: "Agriculture",
+    dominantLandUse: "Agriculture / Forest",
     center: [76, 72],
     polygon: [
       [64, 62],
@@ -85,7 +85,7 @@ export const sites: Site[] = [
     suitability: 46,
     floodRisk: "Moderate",
     roadAccess: "Limited",
-    tags: ["Rural", "Low accessibility"],
+    tags: ["Rural", "Hulu Langat", "Vegetation Retention"],
   },
 ];
 
@@ -96,13 +96,13 @@ export function getSite(id: string): Site | undefined {
 }
 
 export const locations = [
-  "Putrajaya, Malaysia",
-  "Kampung Sri Damai, Selangor",
+  "URBAN: Putrajaya / Cyberjaya",
+  "RURAL: Sungai Buah / Hulu Langat",
 ];
 
 export const timePeriods = [
-  "Jan 2021",
-  "Jan 2023",
-  "Jun 2024",
-  "Jan 2025",
+  "Jan 2021 (Baseline)",
+  "Jan 2023 (Sentinel-2 T1)",
+  "Jun 2024 (Intermediate)",
+  "Jan 2025 (Sentinel-2 T2)",
 ];
