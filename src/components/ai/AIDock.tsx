@@ -1,22 +1,22 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "@tanstack/react-router";
-import { Sparkles, X, Maximize2, RotateCcw, SendHorizonal, MapPin } from "lucide-react";
+import { Sparkles, X, Maximize2, RotateCcw, SendHorizonal, Minus } from "lucide-react";
 import { useGinkgo, useSelectedSite } from "@/state/ginkgo-store";
 import { suggestedPrompts } from "@/services/ai";
 import { AIMessageBubble } from "./AIMessageBubble";
 
 export function AIDock() {
   const [open, setOpen] = useState(false);
+  const [minimized, setMinimized] = useState(false);
   const { messages, thinking, askCopilot, resetChat } = useGinkgo();
   const selectedSite = useSelectedSite();
   const [input, setInput] = useState("");
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (open) {
+    if (open && !minimized) {
       scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
     }
-  }, [messages, thinking, open]);
+  }, [messages, thinking, open, minimized]);
 
   const submit = (text: string) => {
     const value = text.trim();
@@ -27,89 +27,78 @@ export function AIDock() {
 
   return (
     <>
-      {/* Sleek Compact Launcher Widget (Positioned cleanly bottom-right, clear of metrics) */}
+      {/* Compact Launcher — Bottom Left */}
       {!open && (
-        <div className="fixed bottom-14 right-6 z-40">
+        <div className="fixed bottom-6 left-6 z-40">
           <button
             onClick={() => setOpen(true)}
-            className="flex items-center gap-2 rounded-full border border-[#5EEAD4]/40 bg-[#16171A]/95 px-3.5 py-2 shadow-2xl backdrop-blur transition-all hover:scale-105 hover:border-[#5EEAD4] hover:bg-[#1E2024]"
+            className="flex items-center gap-2.5 glass-panel rounded-xl px-4 py-2.5 hover:bg-[#1e2129] transition-all group"
           >
-            <span className="relative flex h-2 w-2 items-center justify-center">
-              <span
-                className={`absolute inline-flex h-full w-full rounded-full ${
-                  thinking ? "animate-cyan-pulse bg-[#5EEAD4]" : "bg-[#5EEAD4]"
-                }`}
-              />
-            </span>
-            <Sparkles className="h-4 w-4 text-[#5EEAD4]" />
-            <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#F5F5F4]">
-              {thinking ? "ANALYZING..." : "AI COPILOT"}
-            </span>
+            <div className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center">
+              <Sparkles className="h-3 w-3 text-white" />
+            </div>
+            <span className="text-xs font-semibold text-white">Spatial Copilot</span>
+            {thinking && (
+              <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+            )}
           </button>
         </div>
       )}
 
-      {/* Expanded Slide-out Drawer Overlay */}
-      {open && (
-        <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[400px] flex-col border-l border-white/10 bg-[#16171A]/95 backdrop-blur-xl shadow-2xl transition-all">
+      {/* Expanded Chat Panel */}
+      {open && !minimized && (
+        <div className="fixed bottom-6 left-6 z-50 w-[380px] h-[500px] flex flex-col glass-panel rounded-2xl overflow-hidden animate-slide-up shadow-2xl border border-white/10">
           {/* Header */}
-          <div className="flex h-14 items-center justify-between border-b border-white/10 px-4">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/8 bg-[#14161b]">
             <div className="flex items-center gap-2.5">
-              <span className="h-2 w-2 rounded-full bg-[#5EEAD4] animate-cyan-pulse" />
+              <div className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center">
+                <Sparkles className="h-3 w-3 text-white" />
+              </div>
               <div>
-                <span className="font-mono text-[12px] uppercase tracking-widest text-[#F5F5F4]">
-                  AI SPATIAL COPILOT
-                </span>
-                <p className="text-[10px] text-[#9CA3AF]">PARSING REAL-TIME GIS CONTEXT</p>
+                <span className="text-xs font-semibold text-white">Spatial Copilot</span>
+                <p className="text-[10px] text-[#94a3b8] leading-none mt-0.5">
+                  {thinking ? "Reasoning..." : `Sector: ${selectedSite.name}`}
+                </p>
               </div>
             </div>
-
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               <button
                 onClick={resetChat}
-                title="Reset conversation"
-                className="rounded p-1.5 text-[#9CA3AF] hover:bg-white/5 hover:text-[#F5F5F4]"
+                title="Reset"
+                className="rounded-md p-1.5 text-[#94a3b8] hover:bg-white/5 hover:text-white transition-colors"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
               </button>
-              <Link
-                to="/ai-copilot"
-                title="Full-screen Workspace"
-                className="rounded p-1.5 text-[#9CA3AF] hover:bg-white/5 hover:text-[#F5F5F4]"
+              <button
+                onClick={() => setMinimized(true)}
+                title="Minimize"
+                className="rounded-md p-1.5 text-[#94a3b8] hover:bg-white/5 hover:text-white transition-colors"
               >
-                <Maximize2 className="h-3.5 w-3.5" />
-              </Link>
+                <Minus className="h-3.5 w-3.5" />
+              </button>
               <button
                 onClick={() => setOpen(false)}
-                className="rounded p-1.5 text-[#9CA3AF] hover:bg-white/5 hover:text-[#F5F5F4]"
+                title="Close"
+                className="rounded-md p-1.5 text-[#94a3b8] hover:bg-white/5 hover:text-white transition-colors"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
 
-          {/* Active Context Bar */}
-          <div className="flex items-center justify-between border-b border-white/5 bg-black/20 px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-[#9CA3AF]">
-            <div className="flex items-center gap-1.5">
-              <MapPin className="h-3 w-3 text-[#5EEAD4]" />
-              <span>ACTIVE LOCATION: {selectedSite ? selectedSite.name : "PUTRAJAYA"}</span>
-            </div>
-            <span className="text-[#5EEAD4]">{thinking ? "THINKING..." : "IDLE"}</span>
-          </div>
-
-          {/* Message List */}
-          <div ref={scroller} className="flex-1 space-y-4 overflow-y-auto p-4">
+          {/* Messages */}
+          <div ref={scroller} className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.length === 0 && (
               <div className="space-y-3">
-                <p className="text-[12px] leading-relaxed text-[#9CA3AF]">
-                  Query Ginkgo to trigger automated spatial intersection, risk modeling, and map view adjustments.
+                <p className="text-xs text-[#94a3b8] leading-relaxed">
+                  Ask questions regarding land suitability, flood exposure buffers, arterial access, and statutory guidelines.
                 </p>
                 <div className="space-y-1.5">
-                  {suggestedPrompts.map((p) => (
+                  {suggestedPrompts.slice(0, 4).map((p) => (
                     <button
                       key={p}
                       onClick={() => submit(p)}
-                      className="block w-full text-left rounded border border-white/5 bg-white/5 p-2.5 text-[11px] text-[#F5F5F4] transition-colors hover:border-[#5EEAD4]/30 hover:bg-white/10"
+                      className="block w-full text-left rounded-xl border border-white/6 bg-white/3 px-3 py-2.5 text-xs text-[#94a3b8] transition-colors hover:border-white/20 hover:text-white hover:bg-white/5"
                     >
                       {p}
                     </button>
@@ -123,21 +112,15 @@ export function AIDock() {
             ))}
 
             {thinking && (
-              <div className="flex items-center gap-2 rounded border border-white/5 bg-black/40 p-3 font-mono text-[11px] text-[#9CA3AF]">
-                <span className="h-2 w-2 rounded-full bg-[#5EEAD4] animate-cyan-pulse" />
-                <span>Checking flood risk and accessibility data...</span>
+              <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/3">
+                <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                <span className="text-xs text-[#94a3b8]">Analyzing spatial layers...</span>
               </div>
             )}
           </div>
 
-          {/* Input Area */}
-          <div className="border-t border-white/10 bg-[#0B0C0E]/60 p-3">
-            {selectedSite && (
-              <div className="mb-2 inline-flex items-center gap-1 rounded bg-[#5EEAD4]/10 px-2 py-0.5 font-mono text-[10px] uppercase text-[#5EEAD4]">
-                <MapPin className="h-2.5 w-2.5" />
-                <span>{selectedSite.name} ({selectedSite.id})</span>
-              </div>
-            )}
+          {/* Input */}
+          <div className="border-t border-white/8 p-3 bg-[#101217]">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -148,18 +131,34 @@ export function AIDock() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="PROMPT COPILOT..."
-                className="w-full rounded border border-white/10 bg-[#16171A] px-3 py-2 font-mono text-[12px] text-[#F5F5F4] placeholder-[#5B5F66] outline-none focus:border-[#5EEAD4]"
+                placeholder="Query spatial assistant..."
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white placeholder-[#64748b] outline-none focus:border-white/30 transition-colors"
               />
               <button
                 type="submit"
                 disabled={thinking || !input.trim()}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-[#5EEAD4] text-[#0B0C0E] transition-opacity disabled:opacity-40"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-[#090a0c] transition-opacity disabled:opacity-30 hover:bg-white/90"
               >
-                <SendHorizonal className="h-4 w-4" />
+                <SendHorizonal className="h-3.5 w-3.5" />
               </button>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Minimized State */}
+      {open && minimized && (
+        <div className="fixed bottom-6 left-6 z-50">
+          <button
+            onClick={() => setMinimized(false)}
+            className="flex items-center gap-2.5 glass-panel rounded-xl px-4 py-2.5 hover:bg-[#1e2129] transition-all"
+          >
+            <div className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center">
+              <Sparkles className="h-3 w-3 text-white" />
+            </div>
+            <span className="text-xs font-semibold text-white">Spatial Copilot</span>
+            <Maximize2 className="h-3 w-3 text-[#94a3b8]" />
+          </button>
         </div>
       )}
     </>

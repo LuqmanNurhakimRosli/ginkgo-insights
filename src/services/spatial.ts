@@ -6,6 +6,90 @@
  * FastAPI + PostGIS backend land, only the bodies here (the adapter) change —
  * never the components that call them.
  */
+
+const BACKEND_URL = "http://localhost:8000";
+
+export interface TemporalModelOutput {
+  scenario: string;
+  images: {
+    t1_rgb: string;
+    t2_rgb: string;
+    t1_landcover: string;
+    t2_landcover: string;
+    change_heatmap: string;
+    t1_ndvi: string;
+    t2_ndvi: string;
+    t1_ndwi: string;
+    t2_ndwi: string;
+  };
+  stats: {
+    mean_change_intensity: number;
+    max_change_intensity: number;
+    severity_breakdown: Record<string, number>;
+    transition_matrix: Record<string, Record<string, number>>;
+    top_transitions: Array<{ from: string; to: string; pixels: number; percentage: number }>;
+    net_change_percentage: number;
+  };
+  classes: Record<number, { name: string; code: string; color: number[] }>;
+}
+
+export interface FloodModelOutput {
+  original_b64: string;
+  flood_b64: string;
+  depth_b64: string;
+  elevation_b64: string;
+  stats: {
+    inundated_area_px: number;
+    inundated_area_percent: number;
+    mean_flood_depth_m: number;
+    hazard_level: string;
+  };
+}
+
+/** Calls the Unified FastAPI Backend for Temporal & 5-Class Land Cover Prediction */
+export async function runTemporalInference(scenario = "urban_sprawl", t1_b64?: string, t2_b64?: string): Promise<TemporalModelOutput | null> {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/predict/temporal`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scenario, t1_b64, t2_b64 }),
+    });
+    if (!res.ok) throw new Error(`Backend error: ${res.statusText}`);
+    return await res.json();
+  } catch (err) {
+    console.warn("Backend inference unreachable, using on-device spatial pipeline:", err);
+    return null;
+  }
+}
+
+/** Calls the Unified FastAPI Backend for Nadi's Flood Prediction Engine */
+export async function runFloodInference(params: {
+  sample_key?: string;
+  rainfall?: number;
+  soil_type?: string;
+  elevation_offset?: number;
+  model_type?: string;
+}): Promise<FloodModelOutput | null> {
+  try {
+    const formData = new FormData();
+    if (params.sample_key) formData.append("sample_key", params.sample_key);
+    if (params.rainfall) formData.append("rainfall", String(params.rainfall));
+    if (params.soil_type) formData.append("soil_type", params.soil_type);
+    if (params.elevation_offset) formData.append("elevation_offset", String(params.elevation_offset));
+    if (params.model_type) formData.append("model_type", params.model_type);
+
+    const res = await fetch(`${BACKEND_URL}/api/predict/flood`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) throw new Error(`Flood model error: ${res.statusText}`);
+    return await res.json();
+  } catch (err) {
+    console.warn("Flood model unreachable, using on-device pipeline:", err);
+    return null;
+  }
+}
+
 import { accessibility } from "@/data/accessibility";
 import { getKpiStrip, indicatorDefinitions } from "@/data/analysis";
 import { changeDetection, landCover, landCoverT1 } from "@/data/changeDetection";

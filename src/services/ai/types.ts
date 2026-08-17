@@ -17,8 +17,7 @@ export interface AIResponse {
 }
 
 export interface AIProvider {
-  id: "mock" | "gemini";
+  id: string;
   name: string;
-  /** Streams nothing today; the contract is intentionally provider-agnostic. */
   send(request: AIRequest): Promise<AIResponse>;
 }
