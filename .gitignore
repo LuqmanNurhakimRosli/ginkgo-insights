@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies & Build
 node_modules
 dist
 dist-ssr
@@ -15,6 +16,53 @@ dist-ssr
 .tanstack/**
 .nitro
 *.local
+
+# Environment Variables, Secrets & API Keys
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.key
+*.pem
+
+# Gemini, Google Cloud & AI API Credentials
+*gemini*key*
+*gemini*.json
+*gemini*.env
+*google*key*
+*service-account*.json
+credentials.json
+api_keys.json
+api_keys.py
+token.json
+
+# Python & Backend Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # Wrangler / Cloudflare
 .wrangler/

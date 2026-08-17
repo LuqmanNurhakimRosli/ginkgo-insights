@@ -64,20 +64,22 @@ Scope: visual and layout only. No exported component/prop/hook renames, no route
 
 1. Feature freeze declared; replaced statutory authority claims with defensible planning decision support language.
 
----
-
 ## Entry 13 — Principal Geospatial UI/UX Overhaul: Map Toolbar, Planning Assessment & End-to-End Raster Ingestion
 
-1. **Compact, Single-Line Dual-View Slider Toolbar (`SideBySideSlider.tsx`)**:
-   - Replaced oversized wrapped controls with a sleek 36px single-line segmented control: `[ 🎛️ Dual Slider ]`, `[ 🌟 5-Class Land Cover ]`, `[ 🔥 Change Heatmap ]`, `[ 💧 Flood Hazard ]`, `[ 🌿 NDVI ]`.
-   - Added `[ 📂 Preset Scenes ▾ ]` selector enabling 1-click loading of benchmark satellite scenes (*Presint 11 Sector, Putra Heights Corridor, Sungai Buah Basin, Sri Damai Reserve*).
-2. **Executive Planning Assessment & Real Downloads (`src/routes/index.tsx`)**:
-   - Transformed the sparse report tab into a rich statutory assessment preview with official document ID (`DOC: GNK-2026-LOT4829`), parcel area, cadastral metadata, Multi-Criteria Statutory Compliance Matrix table, and planning directives.
-   - Built **real, working browser file downloads** for:
-     - `PDF Report` (Generates formatted Markdown/PDF assessment document).
-     - `JSON Data` (Generates full machine-readable telemetry and compliance score payload).
-     - `GeoJSON` (Generates standard vector polygon feature collection).
-3. **End-to-End Live Satellite Imagery Ingestion (`RasterUploadModal.tsx`)**:
-   - Integrated full drag-and-drop file ingestion converting uploaded GeoTIFF/PNG/JPEG to live map canvas layers via `customObservationImage`.
-   - Added 3 instant benchmark satellite cards (*Putra Heights Satellite Scene, Sungai Buah Floodplain, Alpine River Valley*) for 1-click testing.
-   - Added `"Custom Scene Active"` status badge with reset button in the map toolbar.
+1. Compact single-line Dual-View Slider toolbar with preset scene dropdown.
+2. Complete Planning Assessment document preview with real browser downloads (PDF, JSON, GeoJSON).
+3. End-to-end live satellite raster ingestion with preset benchmark satellite cards.
+
+## Entry 14 — World-Class Repository Documentation & README Overhaul
+
+1. Replaced outdated prompt with comprehensive, professional GitHub README.
+
+---
+
+## Entry 15 — Security & Environment Protection (.gitignore)
+
+1. **Comprehensive .gitignore Updates**:
+   - Explicitly ignored all environment variables (`.env`, `.env.local`, `.env.*.local`).
+   - Blocked all Gemini, Google Cloud, Groq, and AI API keys (`*gemini*key*`, `*gemini*.json`, `*gemini*.env`, `*google*key*`, `*service-account*.json`, `credentials.json`, `api_keys.*`).
+   - Ignored Python virtual environments (`.venv/`, `venv/`, `__pycache__/`, `*.pyc`).
+2. **Standardized .env.example**: Updated template with safe placeholders for `VITE_AI_PROVIDER`, `GEMINI_API_KEY`, `VITE_BACKEND_URL`, `GROQ_API_KEY`, and `OLLAMA_BASE_URL`.
