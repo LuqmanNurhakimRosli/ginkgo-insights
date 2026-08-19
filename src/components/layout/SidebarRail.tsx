@@ -8,6 +8,7 @@ import {
   Sparkles,
   FileText,
   Database,
+  Upload,
   Settings as SettingsIcon,
   HelpCircle,
 } from "lucide-react";
@@ -21,6 +22,7 @@ const mainViews = [
   { to: "/planning", label: "SUITABILITY", icon: ShieldCheck },
   { to: "/ai-copilot", label: "COPILOT", icon: Sparkles },
   { to: "/reports", label: "REPORTS", icon: FileText },
+  { to: "/ingest", label: "INGEST", icon: Upload },
   { to: "/data", label: "DATA", icon: Database },
 ] as const;
 

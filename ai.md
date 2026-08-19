@@ -76,7 +76,25 @@ Scope: visual and layout only. No exported component/prop/hook renames, no route
 
 ---
 
-## Entry 15 — Security & Environment Protection (.gitignore)
+## Entry 16 — Ingest Imagery 4-State Analysis Flow (/ingest)
+
+1. **New Domain Types** (`src/types/ingest.ts`):
+   - `IngestionSession`, `HighlightedArea`, `IngestCategory`, `IngestState` with `CATEGORY_COLORS` and `CATEGORY_LABELS` constants.
+2. **Mock Detection Service** (`src/services/ingest.ts`):
+   - `detectHighlightedAreas()` — returns 4 plausible mock bounding boxes and scores after 2.5s simulated delay.
+   - `detectAreasProgressive()` — async generator yielding areas one at a time (400ms stagger) for scan animation.
+   - `downloadIngestReport()` — browser file download in PDF (Markdown), JSON, and GeoJSON formats.
+3. **4-State Component Pipeline** (`src/components/ingest/`):
+   - `IngestUpload.tsx` — drag-and-drop zone with filename/size metadata, 3 sample image picker cards, and gated Analyze button.
+   - `IngestPreprocessing.tsx` — scan-line `requestAnimationFrame` animation overlaid on the canvas, progressive bounding box rendering with category-colored polygons and numbered badges, live status counter, auto-transition.
+   - `IngestDashboard.tsx` — bidirectional canvas ↔ thumbnail strip click sync, `<canvas>` overlay with focus ring and dimming on selection, sidebar overview/detail swap, score bars for Suitability/Livability/Flood Risk.
+   - `IngestReport.tsx` — in-app dark panel report preview with cover section, per-area score tables, PDF/JSON/GeoJSON export buttons.
+   - `IngestFlow.tsx` — state machine orchestrator (`UPLOAD → PREPROCESSING → DASHBOARD → REPORT`).
+4. **Route & Navigation** (`src/routes/ingest.tsx`, `SidebarRail.tsx`):
+   - `/ingest` TanStack Start route registered (auto-discovered by Vite file-system routing).
+   - `INGEST` with Upload icon added to the sidebar rail between REPORTS and DATA.
+5. **Verification**: `npx tsc --noEmit` → Exit code 0, zero errors.
+
 
 1. **Comprehensive .gitignore Updates**:
    - Explicitly ignored all environment variables (`.env`, `.env.local`, `.env.*.local`).

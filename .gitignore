@@ -78,3 +78,14 @@ wheels/
 *.njsproj
 *.sln
 *.sw?
+
+# Large GIS Data & PDF Materials (exceed GitHub 100MB limit)
+Pahang 2024/
+material/
+teamates/
+*.dbf
+*.shp
+*.shx
+*.sbn
+*.sbx
+backend/models/*.pkl

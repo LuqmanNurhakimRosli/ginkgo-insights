@@ -15,6 +15,7 @@ import { Route as AnalysisRouteImport } from './routes/analysis'
 import { Route as ChangeDetectionRouteImport } from './routes/change-detection'
 import { Route as DataRouteImport } from './routes/data'
 import { Route as HelpRouteImport } from './routes/help'
+import { Route as IngestRouteImport } from './routes/ingest'
 import { Route as LivabilityRouteImport } from './routes/livability'
 import { Route as PlanningRouteImport } from './routes/planning'
 import { Route as ReportsRouteImport } from './routes/reports'
@@ -51,6 +52,11 @@ const DataRoute = DataRouteImport.update({
 const HelpRoute = HelpRouteImport.update({
   id: '/help',
   path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IngestRoute = IngestRouteImport.update({
+  id: '/ingest',
+  path: '/ingest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LivabilityRoute = LivabilityRouteImport.update({
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/change-detection': typeof ChangeDetectionRoute
   '/data': typeof DataRoute
   '/help': typeof HelpRoute
+  '/ingest': typeof IngestRoute
   '/livability': typeof LivabilityRoute
   '/planning': typeof PlanningRoute
   '/reports': typeof ReportsRouteWithChildren
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/change-detection': typeof ChangeDetectionRoute
   '/data': typeof DataRoute
   '/help': typeof HelpRoute
+  '/ingest': typeof IngestRoute
   '/livability': typeof LivabilityRoute
   '/planning': typeof PlanningRoute
   '/settings': typeof SettingsRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/change-detection': typeof ChangeDetectionRoute
   '/data': typeof DataRoute
   '/help': typeof HelpRoute
+  '/ingest': typeof IngestRoute
   '/livability': typeof LivabilityRoute
   '/planning': typeof PlanningRoute
   '/reports': typeof ReportsRouteWithChildren
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/change-detection'
     | '/data'
     | '/help'
+    | '/ingest'
     | '/livability'
     | '/planning'
     | '/reports'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/change-detection'
     | '/data'
     | '/help'
+    | '/ingest'
     | '/livability'
     | '/planning'
     | '/settings'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/change-detection'
     | '/data'
     | '/help'
+    | '/ingest'
     | '/livability'
     | '/planning'
     | '/reports'
@@ -186,6 +198,7 @@ export interface RootRouteChildren {
   ChangeDetectionRoute: typeof ChangeDetectionRoute
   DataRoute: typeof DataRoute
   HelpRoute: typeof HelpRoute
+  IngestRoute: typeof IngestRoute
   LivabilityRoute: typeof LivabilityRoute
   PlanningRoute: typeof PlanningRoute
   ReportsRoute: typeof ReportsRouteWithChildren
@@ -234,6 +247,13 @@ declare module '@tanstack/react-router' {
       path: '/help'
       fullPath: '/help'
       preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ingest': {
+      id: '/ingest'
+      path: '/ingest'
+      fullPath: '/ingest'
+      preLoaderRoute: typeof IngestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/livability': {
@@ -320,6 +340,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChangeDetectionRoute: ChangeDetectionRoute,
   DataRoute: DataRoute,
   HelpRoute: HelpRoute,
+  IngestRoute: IngestRoute,
   LivabilityRoute: LivabilityRoute,
   PlanningRoute: PlanningRoute,
   ReportsRoute: ReportsRouteWithChildren,
