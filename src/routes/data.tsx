@@ -1,240 +1,283 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { datasets, models, buildReport } from "@/data/reports";
-import { sites } from "@/data/sites";
-import { Database, Download, FileText, Filter, HardDrive, Layers, Server } from "lucide-react";
-import type { Report } from "@/types";
+import { CircleDashed, RefreshCw } from "lucide-react";
+import { btn, Page, PageHeader, Panel, PanelHeader, Spinner } from "@/components/gk/ui";
+import { WAYBACK_CONFIG_URL } from "@/data/basemaps";
+import { OVERPASS_ENDPOINTS } from "@/lib/geo/osm";
+import { llmStatus } from "@/services/ai/llmProxy";
+import { BACKEND_URL, checkBackendHealth } from "@/services/spatial";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/data")({
   head: () => ({
     meta: [
-      { title: "GINKGO — DATA TERMINAL" },
-      { name: "description", content: "Dense Palantir-style spatial data & report terminal." },
+      { title: "Data sources — Ginkgo" },
+      {
+        name: "description",
+        content:
+          "Open data sources behind every Ginkgo result, with licences and live availability.",
+      },
     ],
   }),
-  component: DataTerminalView,
+  component: DataPage,
 });
 
-type FilterCategory = "ALL" | "RASTER" | "VECTOR" | "GEOJSON" | "REPORTS" | "MODELS";
+type Health = {
+  state: "checking" | "online" | "offline" | "info";
+  ms?: number | undefined;
+  detail?: string | undefined;
+};
 
-export function DataTerminalView() {
-  const [filter, setFilter] = useState<FilterCategory>("ALL");
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+interface Source {
+  id: string;
+  name: string;
+  role: string;
+  provider: string;
+  license: string;
+  detail: string;
+  probe: () => Promise<Health>;
+}
 
-  const formattedDatasets = datasets.map((d) => ({
-    ...d,
-    systemId: `DS-${d.id.toUpperCase()}-${d.type.slice(0, 3).toUpperCase()}`,
-  }));
+async function probe(url: string, mode: RequestMode = "no-cors", timeout = 7000): Promise<Health> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeout);
+  const t0 = performance.now();
+  try {
+    const res = await fetch(url, { mode, signal: ctrl.signal, cache: "no-store" });
+    if (mode === "cors" && !res.ok) return { state: "offline", detail: `HTTP ${res.status}` };
+    return { state: "online", ms: Math.round(performance.now() - t0) };
+  } catch {
+    return { state: "offline", detail: ctrl.signal.aborted ? "Timed out" : "Not reachable" };
+  } finally {
+    clearTimeout(t);
+  }
+}
 
-  const filteredData = formattedDatasets.filter((d) => {
-    if (filter === "ALL") return true;
-    if (filter === "RASTER") return d.type === "Raster";
-    if (filter === "VECTOR") return d.type === "Vector";
-    if (filter === "GEOJSON") return d.type === "GeoJSON";
-    return true;
-  });
+const SOURCES: Source[] = [
+  {
+    id: "dem",
+    name: "AWS Terrain Tiles (Terrarium)",
+    role: "Elevation, slope, height above river",
+    provider: "Mapzen / Tilezen on AWS Open Data — SRTM over Malaysia",
+    license: "Public domain (SRTM) · attribution requested",
+    detail: "~30 m source resolution, sampled at zoom 13–14",
+    probe: () =>
+      probe("https://s3.amazonaws.com/elevation-tiles-prod/terrarium/13/6406/4022.png", "cors"),
+  },
+  ...OVERPASS_ENDPOINTS.map<Source>((ep, i) => ({
+    id: `overpass-${i}`,
+    name: `Overpass API — ${new URL(ep).host}`,
+    role:
+      i === 0 ? "Rivers, land use, buildings, roads, facilities (primary)" : "Failover endpoint",
+    provider: "OpenStreetMap contributors",
+    license: "ODbL 1.0",
+    detail: "Live community-mapped vectors; completeness varies by area",
+    probe: () => probe(ep.replace("/interpreter", "/status")),
+  })),
+  {
+    id: "esri",
+    name: "Esri World Imagery",
+    role: "Satellite basemap",
+    provider: "Esri, Maxar, Earthstar Geographics",
+    license: "Esri terms of use · attribution required",
+    detail: "Sub-metre in urban Malaysia; capture date varies",
+    probe: () =>
+      probe(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/12/2011/3202",
+      ),
+  },
+  {
+    id: "wayback",
+    name: "Esri World Imagery Wayback",
+    role: "Dated historical imagery (Change)",
+    provider: "Esri Living Atlas",
+    license: "Esri terms of use",
+    detail: "Releases since 2014",
+    probe: () => probe(WAYBACK_CONFIG_URL, "cors"),
+  },
+  {
+    id: "s2",
+    name: "Sentinel-2 cloudless",
+    role: "Annual 10 m mosaics (Change)",
+    provider: "EOX IT Services · contains Copernicus Sentinel data",
+    license: "2016 CC BY 4.0 · 2018+ CC BY-NC-SA 4.0",
+    detail: "2016, 2018–2024",
+    probe: () =>
+      probe("https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2023_3857/default/g/10/502/800.jpg"),
+  },
+  {
+    id: "osm-tiles",
+    name: "OpenStreetMap / CARTO / OpenTopoMap tiles",
+    role: "Street, dark, light and terrain basemaps",
+    provider: "OSM Foundation, CARTO, OpenTopoMap",
+    license: "ODbL data · tile usage policies apply",
+    detail: "Use a commercial tile plan for heavy production traffic",
+    probe: () => probe("https://tile.openstreetmap.org/5/25/15.png"),
+  },
+  {
+    id: "geocode",
+    name: "Photon & Nominatim",
+    role: "Place search and area naming",
+    provider: "komoot Photon · OSM Nominatim",
+    license: "ODbL · fair-use policies (no bulk geocoding)",
+    detail: "Typeahead via Photon; Nominatim on submit only",
+    probe: () => probe("https://photon.komoot.io/api/?q=Kuala+Lumpur&limit=1", "cors"),
+  },
+  {
+    id: "backend",
+    name: "Ginkgo Python backend (optional)",
+    role: "PyTorch Siamese U-Net, RF land-cover & flood models on imagery",
+    provider: "This project — backend/main.py",
+    license: "Project licence",
+    detail: BACKEND_URL,
+    probe: async () => {
+      const h = await checkBackendHealth(3000);
+      return h.online
+        ? { state: "online", ms: h.latencyMs }
+        : { state: "offline", detail: "Not running (optional)" };
+    },
+  },
+  {
+    id: "llm",
+    name: "Copilot language models",
+    role: "Optional narration of computed results",
+    provider: "Gemini / Groq via server proxy · Ollama local",
+    license: "Provider terms",
+    detail: "Keys are read on the server only",
+    probe: async () => {
+      try {
+        const s = await llmStatus();
+        const on = [s.gemini && "Gemini", s.groq && "Groq"].filter(Boolean);
+        return on.length
+          ? { state: "online", detail: `${on.join(" + ")} configured` }
+          : { state: "info", detail: "No server key — on-device analyst only" };
+      } catch {
+        return { state: "info", detail: "Server functions unavailable" };
+      }
+    },
+  },
+];
 
-  const getStatusColor = (status: string) => {
-    if (status === "Processed" || status === "Complete") return "border-[#22C55E]/30 bg-[#22C55E]/10 text-[#22C55E]";
-    if (status === "Generated") return "border-[#5EEAD4]/30 bg-[#5EEAD4]/10 text-[#5EEAD4]";
-    if (status === "Queued" || status === "Prototype") return "border-[#EAB308]/30 bg-[#EAB308]/10 text-[#EAB308]";
-    return "border-white/10 bg-white/5 text-[#9CA3AF]";
-  };
+const PENDING = [
+  {
+    name: "Historical flood extents",
+    source: "JPS Infobanjir / DID 1GeoInfo",
+    why: "Needed for the history term of the flood model and for validation against observed floods (e.g. Dec 2021 Klang Valley).",
+  },
+  {
+    name: "Official land-use plans",
+    source: "PLANMalaysia (e.g. Guna Tanah Semasa, Rancangan Tempatan)",
+    why: "Replace community-mapped OSM land use with gazetted zoning for statutory checks.",
+  },
+  {
+    name: "High-resolution DTM",
+    source: "JUPEM / LiDAR",
+    why: "Bare-earth elevation would remove the rooftop bias of SRTM in dense urban areas.",
+  },
+];
 
-  const openReportForSite = (siteId: string) => {
-    const rpt = buildReport(siteId);
-    setSelectedReport(rpt);
-  };
+function StatusPill({ h }: { h: Health | undefined }) {
+  if (!h || h.state === "checking")
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[11.5px] text-[#94a3b8]">
+        <Spinner className="h-3 w-3" /> Checking
+      </span>
+    );
+  const map = {
+    online: ["#10B981", h.ms != null ? `Online · ${h.ms} ms` : "Online"],
+    offline: ["#EF4444", "Unreachable"],
+    info: ["#94A3B8", "Info"],
+  } as const;
+  const [c, label] = map[h.state];
+  return (
+    <span className="inline-flex flex-col items-end">
+      <span
+        className="inline-flex items-center gap-1.5 text-[11.5px] font-medium"
+        style={{ color: c }}
+      >
+        <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: c }} />
+        {label}
+      </span>
+      {h.detail && <span className="text-[10.5px] text-[#64748b]">{h.detail}</span>}
+    </span>
+  );
+}
 
-  const handleExport = (format: "PDF" | "JSON" | "GeoJSON") => {
-    alert(`Exporting dataset / report payload as ${format}...`);
-  };
+function DataPage() {
+  const [health, setHealth] = useState<Record<string, Health>>({});
+  const [checkedAt, setCheckedAt] = useState<Date | null>(null);
+  const run = useCallback(() => {
+    setHealth(Object.fromEntries(SOURCES.map((s) => [s.id, { state: "checking" } as Health])));
+    void Promise.all(
+      SOURCES.map(async (s) => {
+        const h = await s.probe();
+        setHealth((prev) => ({ ...prev, [s.id]: h }));
+      }),
+    ).then(() => setCheckedAt(new Date()));
+  }, []);
+  useEffect(run, [run]);
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-[#0B0C0E]">
-      {/* Top Action Toolbar */}
-      <div className="flex h-11 items-center justify-between border-b border-white/10 px-4 font-mono text-[11px] uppercase tracking-widest text-[#9CA3AF]">
-        <div className="flex items-center gap-2">
-          <Database className="h-3.5 w-3.5 text-[#5EEAD4]" />
-          <span className="font-bold text-[#F5F5F4]">VIEW 4 // SYSTEM DATA TERMINAL</span>
-        </div>
-
-        {/* Ghost Button Export Toolbar */}
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] text-[#5B5F66]">EXPORT TARGET:</span>
-          {(["PDF", "JSON", "GeoJSON"] as const).map((fmt) => (
-            <button
-              key={fmt}
-              onClick={() => handleExport(fmt)}
-              className="flex items-center gap-1 rounded border border-white/10 bg-[#16171A] px-2.5 py-1 text-[10px] text-[#F5F5F4] transition-all hover:border-[#5EEAD4]/50 hover:bg-[#5EEAD4]/10 hover:text-[#5EEAD4]"
-            >
-              <Download className="h-3 w-3" />
-              <span>{fmt}</span>
+    <Page
+      header={
+        <PageHeader
+          title="Data sources"
+          description="Every number in Ginkgo is computed from these open sources at analysis time. Availability is checked live from your browser."
+          actions={
+            <button onClick={run} className={btn.secondary}>
+              <RefreshCw className="h-3.5 w-3.5" /> Re-check
             </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Main Terminal Composition */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Sub-Rail: Category Filter List */}
-        <div className="flex w-56 shrink-0 flex-col border-r border-white/10 bg-[#16171A] p-3">
-          <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-widest text-[#9CA3AF]">
-            DATASET CATEGORIES
-          </div>
-          <div className="space-y-1 font-mono text-[11px]">
-            {[
-              { id: "ALL", label: "ALL DATASETS", count: datasets.length, icon: HardDrive },
-              { id: "RASTER", label: "RASTER COMPOSITES", count: datasets.filter((d) => d.type === "Raster").length, icon: Layers },
-              { id: "VECTOR", label: "VECTOR NETWORKS", count: datasets.filter((d) => d.type === "Vector").length, icon: Filter },
-              { id: "GEOJSON", label: "CLASSIFICATIONS", count: datasets.filter((d) => d.type === "GeoJSON").length, icon: Database },
-              { id: "REPORTS", label: "ASSESSMENT REPORTS", count: sites.length, icon: FileText },
-              { id: "MODELS", label: "MODEL ADAPTERS", count: models.length, icon: Server },
-            ].map((cat) => {
-              const Icon = cat.icon;
-              const isActive = filter === cat.id;
-
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => {
-                    setFilter(cat.id as FilterCategory);
-                    setSelectedReport(null);
-                  }}
-                  className={`flex w-full items-center justify-between rounded p-2 text-left transition-all ${
-                    isActive
-                      ? "border border-[#5EEAD4]/30 bg-[#5EEAD4]/10 text-[#5EEAD4]"
-                      : "text-[#9CA3AF] hover:bg-white/5 hover:text-[#F5F5F4]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Icon className="h-3.5 w-3.5" />
-                    <span>{cat.label}</span>
+          }
+        />
+      }
+    >
+      <div className="mx-auto max-w-6xl space-y-4 p-4 lg:p-6">
+        <Panel>
+          <PanelHeader
+            title="Connected sources"
+            hint={checkedAt ? `Last checked ${checkedAt.toLocaleTimeString("en-MY")}` : "Checking…"}
+          />
+          <ul className="divide-y divide-white/[0.05]">
+            {SOURCES.map((s) => (
+              <li
+                key={s.id}
+                className="grid gap-2 px-4 py-3.5 sm:grid-cols-[minmax(0,1fr)_150px] sm:items-center"
+              >
+                <div className="min-w-0">
+                  <div className="text-[13px] font-medium">{s.name}</div>
+                  <div className="text-[12px] text-[#cbd5e1]">{s.role}</div>
+                  <div className="mt-0.5 text-[11px] leading-snug text-[#64748b]">
+                    {s.provider} · {s.license} · {s.detail}
                   </div>
-                  <span className="text-[9px] num">{cat.count}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+                </div>
+                <div className={cn("sm:text-right")}>
+                  <StatusPill h={health[s.id]} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Panel>
 
-        {/* Center/Main Table & Report Reader Area */}
-        <div className="flex flex-1 flex-col overflow-hidden bg-[#0B0C0E]">
-          {/* Detailed Report View (if opened) */}
-          {selectedReport ? (
-            <div className="flex h-full w-full flex-col overflow-hidden p-4 font-mono">
-              <div className="mb-3 flex items-center justify-between border-b border-white/10 pb-3">
+        <Panel>
+          <PanelHeader
+            title="Not yet connected"
+            hint="Integrations that would strengthen the results. Shown so reviewers can see exactly what is and is not used."
+          />
+          <ul className="divide-y divide-white/[0.05]">
+            {PENDING.map((p) => (
+              <li key={p.name} className="flex gap-3 px-4 py-3.5">
+                <CircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-[#64748b]" />
                 <div>
-                  <span className="text-[10px] text-[#5EEAD4]">REPORT IDENTIFIER: {selectedReport.id}</span>
-                  <h2 className="text-[16px] font-bold text-[#F5F5F4]">{selectedReport.title}</h2>
-                  <p className="text-[10px] text-[#9CA3AF]">STATUS: {selectedReport.status.toUpperCase()} · DATE: {selectedReport.generatedAt}</p>
-                </div>
-                <button
-                  onClick={() => setSelectedReport(null)}
-                  className="rounded border border-white/10 bg-[#16171A] px-3 py-1 text-[11px] text-[#F5F5F4] hover:bg-white/10"
-                >
-                  BACK TO TABLE
-                </button>
-              </div>
-
-              <div className="flex-1 space-y-4 overflow-y-auto pr-2 text-[12px] text-[#F5F5F4]">
-                <div className="rounded border border-white/10 bg-[#16171A] p-4">
-                  <div className="text-[10px] text-[#5EEAD4] uppercase mb-1">EXECUTIVE SUMMARY</div>
-                  <p className="leading-relaxed text-[#9CA3AF]">{selectedReport.summary}</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {selectedReport.sections.map((sec, i) => (
-                    <div key={i} className="rounded border border-white/10 bg-[#16171A] p-3">
-                      <div className="text-[10px] font-bold uppercase text-[#5EEAD4] mb-1">{sec.title}</div>
-                      <p className="text-[11px] text-[#9CA3AF] leading-relaxed">{sec.body}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : filter === "REPORTS" ? (
-            /* Reports Selection List */
-            <div className="p-4 font-mono">
-              <div className="mb-3 text-[11px] uppercase tracking-widest text-[#9CA3AF]">
-                GENERATED ASSESSMENT REPORTS
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {sites.map((s) => (
-                  <div key={s.id} className="rounded border border-white/10 bg-[#16171A] p-4">
-                    <div className="text-[10px] text-[#5EEAD4]">RPT-{s.id.toUpperCase()}</div>
-                    <div className="text-[14px] font-bold text-[#F5F5F4] uppercase">{s.name} ASSESSMENT</div>
-                    <div className="mt-1 text-[10px] text-[#9CA3AF]">{s.locality} · {s.areaHa} HA</div>
-                    <button
-                      onClick={() => openReportForSite(s.id)}
-                      className="mt-3 w-full rounded border border-[#5EEAD4]/30 bg-[#5EEAD4]/10 py-1.5 text-[10px] font-semibold text-[#5EEAD4] hover:bg-[#5EEAD4]/20"
-                    >
-                      OPEN REPORT TERMINAL
-                    </button>
+                  <div className="text-[13px] font-medium">
+                    {p.name} <span className="font-normal text-[#94a3b8]">· {p.source}</span>
                   </div>
-                ))}
-              </div>
-            </div>
-          ) : filter === "MODELS" ? (
-            /* Model Adapters View */
-            <div className="p-4 font-mono">
-              <div className="mb-3 text-[11px] uppercase tracking-widest text-[#9CA3AF]">
-                CONNECTED AI & SPATIAL MODEL ADAPTERS
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                {models.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between rounded border border-white/10 bg-[#16171A] p-4">
-                    <div>
-                      <span className="text-[10px] text-[#5EEAD4]">{m.id.toUpperCase()}</span>
-                      <h3 className="text-[14px] font-bold text-[#F5F5F4]">{m.name}</h3>
-                      <p className="text-[10px] text-[#9CA3AF]">OWNER: {m.owner} · {m.note}</p>
-                    </div>
-                    <span className={`rounded border px-2.5 py-1 text-[10px] uppercase font-semibold ${getStatusColor(m.status)}`}>
-                      {m.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            /* Dense Data Table (Fixed Header, Internal Scroll Body) */
-            <div className="flex h-full flex-col overflow-hidden font-mono">
-              <div className="overflow-x-auto overflow-y-auto flex-1">
-                <table className="w-full text-left text-[11px]">
-                  <thead className="sticky top-0 z-10 border-b border-white/10 bg-[#16171A] text-[#9CA3AF] uppercase">
-                    <tr>
-                      <th className="px-4 py-2.5">SYSTEM ID</th>
-                      <th className="px-4 py-2.5">DATASET NAME</th>
-                      <th className="px-4 py-2.5">TYPE</th>
-                      <th className="px-4 py-2.5">LOCATION</th>
-                      <th className="px-4 py-2.5">PERIOD</th>
-                      <th className="px-4 py-2.5">UPDATED</th>
-                      <th className="px-4 py-2.5">STATUS</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5 text-[#F5F5F4]">
-                    {filteredData.map((d) => (
-                      <tr key={d.id} className="hover:bg-white/5 transition-colors">
-                        <td className="px-4 py-2.5 text-[#5EEAD4] font-semibold">{d.systemId}</td>
-                        <td className="px-4 py-2.5 font-medium">{d.name}</td>
-                        <td className="px-4 py-2.5 text-[#9CA3AF]">{d.type}</td>
-                        <td className="px-4 py-2.5 text-[#9CA3AF]">{d.location}</td>
-                        <td className="px-4 py-2.5 text-[#9CA3AF] num">{d.period}</td>
-                        <td className="px-4 py-2.5 text-[#9CA3AF] num">{d.updated}</td>
-                        <td className="px-4 py-2.5">
-                          <span className={`inline-block rounded border px-2 py-0.5 text-[9px] uppercase font-semibold ${getStatusColor(d.status)}`}>
-                            {d.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
+                  <div className="text-[11.5px] leading-snug text-[#94a3b8]">{p.why}</div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Panel>
       </div>
-    </div>
+    </Page>
   );
 }

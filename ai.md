@@ -101,3 +101,55 @@ Scope: visual and layout only. No exported component/prop/hook renames, no route
    - Blocked all Gemini, Google Cloud, Groq, and AI API keys (`*gemini*key*`, `*gemini*.json`, `*gemini*.env`, `*google*key*`, `*service-account*.json`, `credentials.json`, `api_keys.*`).
    - Ignored Python virtual environments (`.venv/`, `venv/`, `__pycache__/`, `*.pyc`).
 2. **Standardized .env.example**: Updated template with safe placeholders for `VITE_AI_PROVIDER`, `GEMINI_API_KEY`, `VITE_BACKEND_URL`, `GROQ_API_KEY`, and `OLLAMA_BASE_URL`.
+
+---
+
+## Entry 17 — Map-first production overhaul & riverine flood model
+
+**Why.** The judge review (Jamal Jamaludin, Gamuda) found the flood result did not make sense
+(flat areas scored high), the scope was too broad, and it was unclear where AI was used.
+The audit also found: map overlays were hand-drawn SVG on one 256 px tile, scores were
+hard-coded, secondary pages showed placeholder maps with no navigation, SSR crashed
+(`window is not defined` from a top-level Leaflet import), and the Gemini key was shipped
+in the public JS bundle.
+
+**What changed.**
+1. **Map-first workflow** replaces image upload: Leaflet loaded client-only; Esri/OSM/CARTO/
+   OpenTopoMap basemaps; Photon/Nominatim search; draw rectangle (mouse + touch), analyse
+   view, locate me, layers panel, legend, per-cell inspection.
+2. **In-browser geospatial engine** (`src/lib/geo/`): AWS Terrarium SRTM DEM with void/pit
+   cleaning and a rooftop (20th-percentile) ground filter; Overpass OSM with endpoint
+   failover; land cover rasterised to the 5-class legend; access and facility indicators.
+3. **Riverine flood susceptibility index** (distance to river, height above nearest
+   drainage, flatness) — monotonic by construction, flat-area safeguard, missing history
+   term reported, parameters editable in Settings.
+4. **"Why this score"** panel for any cell and for every livability/suitability dimension.
+5. **All 12 pages rebuilt** on computed data: Map, Areas (+profile), Change (Esri Wayback /
+   Sentinel-2 swipe + VARI vegetation change), Livability, Suitability (live weights, flags,
+   rule-based conditions), Copilot, Report (A4 print/PDF, JSON, GeoJSON), Import (GeoJSON/KML
+   boundaries, GeoTIFF in EPSG:4326/3857/UTM), Data (live source health), Settings, Methodology
+   (formulas, sensitivity curves, live validation gate, AI-usage table), 404/error.
+6. **App shell**: desktop icon rail; mobile top bar, bottom tabs, "More" sheet, bottom-sheet
+   analysis panel; safe-area insets; print stylesheet.
+7. **AI**: on-device deterministic analyst (default); Gemini/Groq through a TanStack Start
+   server function with server-only keys; Ollama local. LLMs narrate computed JSON only.
+   Removed provider stubs that relabelled mock output as Groq/Hugging Face.
+8. Removed mock data modules and obsolete components; synced `bun.lock` (it was missing
+   `leaflet`); added `geotiff` (lazy-loaded); removed unused `react-leaflet`.
+
+**Verification.**
+- `tsc --noEmit` clean; ESLint 0 errors; `vite build` OK; all routes SSR 200 (404 → 404).
+- `bun test tests`: 20 tests (flood monotonicity in distance/HAND/slope, flat-area cap,
+  synthetic valley, OSM parsing, ring assembly, DEM void cleaning, UTM inverse).
+- Gate test with real SRTM + approximate river fixture: Masjid Jamek 0.65 **High**, Dataran
+  Merdeka 0.80 High, Bukit Nanas 0.15 **Low**, KL Tower 0.16 Low. Must be re-run live
+  (Methodology → Run test) with real OSM rivers before citing.
+- Playwright smoke test at 1440×900 and 390×844 (real DEM; OSM/tiles/geocoders from
+  fixtures because the build sandbox blocks them): draw, quick areas, inspection, all pages,
+  exports, import, VARI, mobile sheet and More menu — no page errors. Client bundle contains
+  no API key.
+
+**Open items.** Team decision on persona (copy currently targets PBT); connect verified
+JPS/DID flood extents; calibrate weights against observed floods; rotate the previously
+exposed Gemini key; backend `flood_engine.py` still contains the brightness-based DEM and is
+no longer called by the frontend.

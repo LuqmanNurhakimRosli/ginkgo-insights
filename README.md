@@ -1,208 +1,133 @@
 <div align="center">
 
-# 🌿 GINKGO
-### Enterprise Spatial Decision Intelligence & Land Analytics Platform
-**"From satellite evidence to planning intelligence."**
+# 🌿 Ginkgo
+
+### Spatial decision intelligence for Malaysian planning authorities
+
+**Pick any area on the map → get riverine flood susceptibility, land use, access, livability and development suitability — with every number explained.**
 
 [![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript_5.8-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
-[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=for-the-badge&logo=leaflet&logoColor=white)](https://leafletjs.com/)
-
----
+[![OpenStreetMap](https://img.shields.io/badge/OpenStreetMap-7EBC6F?style=for-the-badge&logo=openstreetmap&logoColor=white)](https://www.openstreetmap.org/)
+[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 
 </div>
 
-## 📌 1. Overview & Problem Statement
+---
 
-Conventional remote sensing platforms output pixel classifications (*"Pixel (420, 180) has 88% probability of being water"*). However, municipal planners and land authorities make statutory planning and policy decisions under frameworks like **Akta 172**.
+## What it does
 
-**Ginkgo** is an enterprise-grade spatial decision intelligence platform that bridges this gap. It translates multi-spectral satellite perception ($\text{NDVI}, \text{NDWI}, \text{NDBI}$), PyTorch Siamese change detection, and hydrological flood simulations into **traceable, explainable, statutory planning assessments**.
+1. **Select an area** — search a place (or paste `lat, lng`), drag a rectangle, analyse the current view, tap once for a 1 km square, or import a GeoJSON/KML parcel boundary.
+2. **Ginkgo fetches real open data for it** — SRTM elevation (AWS Terrain Tiles) and OpenStreetMap rivers, land use, buildings, roads, schools, clinics and transit stops.
+3. **It computes, in your browser, with published formulas**
+   - **Riverine (fluvial) flood susceptibility** per ~20–120 m cell, from distance to river, height above the nearest river (HAND) and slope.
+   - **Land use / land cover** in the 5-class legend (built-up, vegetation, water, agriculture, bare) — unmapped land is reported, never guessed.
+   - **Accessibility**, **livability index** (5 dimensions) and **development suitability** with screening flags (river corridor, flood, slopes > 25°, open space) and rule-based planning conditions.
+4. **It explains everything** — tap any cell for _"Why this score"_: computed inputs → factor → weight → contribution. AI never produces a score; the copilot only narrates computed results.
+5. **Export** — print an A4 planning report to PDF, or download JSON / GeoJSON (area, rivers, facilities, Moderate/High cells).
+
+Works on desktop (primary) and on phones (bottom tabs + bottom-sheet results).
 
 ---
 
-## 🏛️ 2. The 3-Tier "Glass-Box" Intelligence Architecture
+## Pages
 
-Ginkgo rejects black-box scoring in favor of a strict 3-tier traceability hierarchy:
+|     | Page                              |                                                                                                                                                 |
+| --- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🗺️  | **Map** `/`                       | Search, draw, 5 basemaps (satellite, streets, dark, light, terrain), flood / land-cover / terrain / rivers / facilities overlays, results panel |
+| 📁  | **Areas** `/analysis`             | Saved areas and side-by-side comparison; area profiles                                                                                          |
+| 🕒  | **Change** `/change-detection`    | Swipe dated imagery (Esri Wayback since 2014, Sentinel-2 annual) and measure vegetation change (VARI)                                           |
+| 💚  | **Livability** `/livability`      | Five dimensions with formulas, inputs and contributions                                                                                         |
+| ⚖️  | **Suitability** `/planning`       | Adjustable criteria weights, screening flags, planning conditions                                                                               |
+| ✨  | **Copilot** `/ai-copilot`         | Questions answered from the computed results (on-device by default; Gemini / Groq / Ollama optional)                                            |
+| 📄  | **Report** `/reports`             | Printable report, JSON, GeoJSON                                                                                                                 |
+| ⬆️  | **Import** `/ingest`              | GeoJSON/KML boundaries; GeoTIFF (EPSG:4326 / 3857 / UTM) placed at its true location                                                            |
+| 🗄️  | **Data** `/data`                  | Live status and licences of every data source                                                                                                   |
+| ⚙️  | **Settings** / 📘 **Methodology** | Model parameters and weights; formulas, sensitivity curves, live validation test, where AI is used                                              |
+
+---
+
+## The riverine flood model
 
 ```
-┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ TIER 3: STATUTORY DECISION LAYER (The "What Must We Do?")                                              │
-│ • Composite Livability Rating: 84 / 100                                                                │
-│ • Statutory Assessment: "Suitable subject to mandatory on-site stormwater detention (OSD)"             │
-│ • 1-Click Official Export: Executive Planning Report (PDF, JSON, GeoJSON)                              │
-└───────────────────────────────────────────────────▲────────────────────────────────────────────────────┘
-                                                    │ Synthesizes & Evaluates
-┌───────────────────────────────────────────────────┴────────────────────────────────────────────────────┐
-│ TIER 2: PLANNING INTELLIGENCE QUADRANTS (The "Why?")                                                   │
-│ • 🌱 Environment (66/100) — Net NDVI canopy loss threshold & carbon retention balance                  │
-│ • 🚀 Accessibility (91/100) — JKR arterial road network & transit ingress score                        │
-│ • 🛡️ Disaster Resilience (88/100) — JPS 100-year flood zone buffer margin                              │
-│ • 📈 Sustainability (85/100) — Akta 172 local structure plan compatibility                             │
-└───────────────────────────────────────────────────▲────────────────────────────────────────────────────┘
-                                                    │ Derived Mathematically from
-┌───────────────────────────────────────────────────┴────────────────────────────────────────────────────┐
-│ TIER 1: EMPIRICAL GEOSPATIAL EVIDENCE (Open-Source On-Device ML Perception)                            │
-│ • PyTorch Siamese Dual-Stream U-Net: Pixel-level difference heatmap                                    │
-│ • 5-Class Random Forest Classifier: Urban, Vegetation, Water, Bare Soil, Agriculture                   │
-│ • Sentinel-2 Multi-Spectral Indices: NDVI (Canopy), NDWI (Water), NDBI (Built-Up)                      │
-│ • Nadi Hydrological Flood Engine: Rainfall (mm/hr) × Soil Permeability × Elevation Profile             │
-└────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+RFSI = (0.35·F_dist + 0.45·F_hand + 0.20·F_flat) / Σw
+F_dist = 0.5^(distance to river / 250 m)
+F_hand = 0.5^(height above river / 5 m)
+F_flat = 1 − min(slope / 15°, 1)
+High ≥ 0.60 · Moderate ≥ 0.35 · Low
 ```
 
----
+- Monotonic by construction and unit-tested: farther, higher or steeper never scores higher.
+- Flat land far from rivers stays **Low** (fixes the earlier image-brightness "flat-area" issue).
+- SRTM rooftops and voids are filtered before computing height above river.
+- Historical flood evidence is **not** included until a verified JPS/DID layer is connected — the gap is shown on every result.
+- Parameters are literature-anchored and **illustrative, not yet calibrated**; adjust them in Settings.
 
-## ✨ 3. Key Feature Modules
-
-### 🎛️ A. Mission-Control Canvas & Dual-View Slider
-- **Sub-Pixel Comparison Slider**: Draggable comparison curtain comparing $T_1$ Baseline vs $T_2$ Observation with multi-spectral segmentation overlays.
-- **Single-Line High-Density Toolbar**:
-  - `[ 🎛️ Dual Slider ]`: Drag split-view comparison.
-  - `[ 🌟 5-Class Land Cover ]`: Standardized multi-class segmentation (🔴 *Urban*, 🟢 *Vegetation*, 🔵 *Water*, 🟠 *Soil*, 🟡 *Agriculture*).
-  - `[ 🔥 Change Heatmap ]`: PyTorch Siamese U-Net difference heatmap.
-  - `[ 💧 Flood Hazard ]`: Inundation hazard vector boundary.
-  - `[ 🌿 NDVI ]`: Vegetation canopy index overlay.
-- **Preset Benchmark Scenes**: 1-click switcher between real Malaysian satellite scenes (*Presint 11 Putrajaya, Putra Heights Flood Corridor, Sungai Buah Basin, Sri Damai Reserve*).
-
-### 📑 B. Executive Planning Assessment (Statutory Report Export)
-- **Municipal Cadastral Header**: Official Document ID (`DOC: GNK-2026-LOT4829`), Verified Status, and Parcel Hectarage.
-- **Multi-Criteria Compliance Matrix Table**: Detailed score breakdown across Environmental, Road Ingress, Flood Resilience, and Land Compatibility dimensions.
-- **Statutory Planning Directives**: Specific guidance on On-Site Stormwater Detention (OSD) under MSMA 2nd Edition and $10\%$ public open space preservation under Akta 172 Section 21B.
-- **Real Working Downloads**:
-  - `[ 📥 PDF Report ]` $\rightarrow$ Generates and downloads a complete formatted statutory assessment document.
-  - `[ 📥 JSON Data ]` $\rightarrow$ Downloads machine-readable telemetry and compliance score payload.
-  - `[ 📥 GeoJSON ]` $\rightarrow$ Downloads standard GeoJSON vector boundaries of the parcel and risk zones.
-
-### 🧪 C. Interactive Scenario Simulator (What-If)
-- **Rezoning & Density Modeling**: Test real-time plot ratio density changes ($20\% - 95\%$) with instantaneous runoff surge ($+18.4\%$) and peak traffic ingress ($+220\text{ veh/hr}$) projections.
-- **Hydrological Flood Engine**: Adjust monsoon rainfall influx ($50 - 300\text{ mm/hr}$), soil permeability (Loam, Clay, Sand), and elevation buffer offsets running Nadi's Decision Tree/Random Forest models.
-
-### 📤 D. End-to-End Satellite Imagery Ingestion
-- **Live Canvas Ingestion**: Drop a custom GeoTIFF, PNG, or JPEG to immediately load the satellite scene onto the live map observation canvas.
-- **Instant Preset Cards**: 3 built-in benchmark satellite cards (*Putra Heights Satellite Scene, Sungai Buah Floodplain, Alpine River Valley*) for instant demonstration.
-- **Live Status Feedback**: Active indicator pill `[ Custom Scene Active · ✕ Reset ]` in the toolbar.
-
-### 🤖 E. Multi-Provider AI Spatial Copilot
-- Conversational planning assistant with spatial context injection and tool-calling capabilities.
-- Supports **Google Gemini 2.0 Flash**, **Local Ollama (Llama 3 via Docker)**, and **Groq** acceleration.
+**Gate test** (Masjid Jamek must be High, nearby Bukit Nanas Low):
+`npm run validate:riverine -- --fixture` → Masjid Jamek 0.65 High · Bukit Nanas 0.15 Low (real SRTM, approximate river centrelines).
+Run the live version with real OpenStreetMap rivers from **Methodology → Run test**.
 
 ---
 
-## 🛠️ 4. Technology Stack & Architecture
+## Quickstart
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| **Frontend Framework** | **TanStack Start v1 + React 19** | Type-safe routing, server-side rendering, sub-second client transitions |
-| **Styling & Theme** | **Tailwind CSS v4 (Monochrome Dark Console)** | High-density Jet Black (`#090A0C`) / Dark Zinc (`#14161B`) enterprise aesthetic |
-| **Geospatial Engine** | **Leaflet + Esri World Imagery + Sentinel-2** | Sub-pixel tile composite mapping and vector layer rendering |
-| **Backend Microservice** | **Python FastAPI (`backend/main.py`)** | REST API endpoints on `http://localhost:8000` |
-| **Deep Learning** | **PyTorch Siamese Dual-Stream U-Net** | Bi-temporal feature extraction and change intensity heatmaps |
-| **Land Cover ML** | **Scikit-Learn Random Forest (7 Features)** | 5-Class pixel segmentation on $[R, G, B, \text{NDVI}, \text{NDWI}, \text{NDBI}, \text{Brightness}]$ |
-| **Flood Modeling** | **Nadi's RF / DT / HistGradientBoosting** | Hydrological inundation and terrain runoff simulations |
-
----
-
-## 🚀 5. Quickstart & Installation
-
-### Prerequisites
-- Node.js 18+ & npm
-- Python 3.10+ (for backend microservice)
-
-### Step 1: Clone Repository & Install Frontend
 ```bash
 git clone https://github.com/LuqmanNurhakimRosli/ginkgo-insights.git
 cd ginkgo-insights
-
-# Install Node dependencies
-npm install
-
-# Start frontend development server (Port 8080)
-npm run dev
+npm install          # or: bun install
+npm run dev          # http://localhost:8080
 ```
-Open **`http://localhost:8080/`** in your browser.
 
-### Step 2: (Optional) Run Unified Python Backend
+No API key is needed: maps, elevation, OpenStreetMap and the on-device copilot work out of the box.
+
+Optional configuration (`cp .env.example .env`):
+
+| Variable                         | Where           | Purpose                                                       |
+| -------------------------------- | --------------- | ------------------------------------------------------------- |
+| `VITE_AI_PROVIDER`               | client          | Default copilot engine: `analyst`, `gemini`, `groq`, `ollama` |
+| `VITE_BACKEND_URL`               | client          | Optional Python ML backend (default `http://localhost:8000`)  |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | **server only** | Gemini narration via the server function                      |
+| `GROQ_API_KEY`, `GROQ_MODEL`     | **server only** | Groq (Llama 3.3 70B) narration                                |
+
+> Never put a key in a `VITE_` variable — those are embedded in the public bundle.
+
+### Checks
+
 ```bash
-cd backend
-
-# Install Python ML dependencies
-pip install -r requirements.txt
-
-# Start FastAPI server (Port 8000)
-python main.py
+npm run typecheck   # tsc --noEmit
+npm run lint        # eslint + prettier
+npm test            # bun test tests  (flood monotonicity, valley, OSM parsing, DEM cleaning, UTM)
+npm run build       # production build (Nitro / Cloudflare)
 ```
 
-> **Note**: Ginkgo features a built-in decoupled client adapter. If the Python backend is not running, the frontend automatically falls back to on-device pre-computed simulations without breaking!
+### Optional Python backend
+
+`backend/` holds the FastAPI service with the PyTorch Siamese U-Net change detector and Random Forest land-cover classifier (`pip install -r backend/requirements.txt && python backend/main.py`). The web app does not require it; its status appears on the Data page.
 
 ---
 
-## 📁 6. Repository Directory Structure
+## Architecture
 
 ```
-c:\Users\Luqman Nurhakim\Desktop\Projects\Hackathon-2026\PlanAI\
-├── backend/
-│   ├── main.py                         # Unified FastAPI microservice (Port 8000)
-│   ├── requirements.txt                # Python dependencies
-│   ├── train_model.py                  # Model training and validation script
-│   ├── models/                         # Trained ML Models (.pkl)
-│   │   ├── flood_rf_model.pkl          # Random Forest Flood Classifier
-│   │   ├── flood_dt_model.pkl          # Decision Tree Flood Classifier
-│   │   ├── flood_hgb_model.pkl         # HistGradientBoosting Flood Classifier
-│   │   └── flood_lr_model.pkl          # Logistic Regression Baseline
-│   ├── samples/                        # Benchmark Satellite Scenes (PNG/TIFF)
-│   ├── model/                          # Deep Learning Architectures
-│   │   ├── unet_change_detection.py    # PyTorch Siamese Dual-Stream U-Net
-│   │   └── land_cover_classifier.py    # 5-Class Random Forest (7-features)
-│   ├── services/                       # Core Analytics Services
-│   │   ├── flood_engine.py             # Hydrological Flood Engine
-│   │   ├── spatial_engine.py           # Optical Band & Spectral Index Differencing
-│   │   └── copilot_engine.py           # LLM Spatial Reasoning Copilot
-│   └── utils/                          # Raster Processing & Analytics
-│       ├── raster_processor.py         # Transition Matrix & Severity Metrics
-│       └── synthetic_data_generator.py # Scenario Generator
-├── src/
-│   ├── routes/
-│   │   ├── index.tsx                   # Ginkgo Mission Control Dashboard
-│   │   └── __root.tsx                  # Root Layout & Metadata
-│   ├── components/
-│   │   ├── map/
-│   │   │   ├── SideBySideSlider.tsx    # Multi-Layer Draggable Comparison Slider
-│   │   │   └── SatelliteMap.tsx        # Leaflet Satellite Map Engine
-│   │   ├── dashboard/
-│   │   │   ├── LivabilityQuadrant.tsx  # 4-Quadrant Sustainability Indicator Card
-│   │   │   └── InterventionFeed.tsx    # StreamGuard Priority Incident Feed
-│   │   ├── upload/
-│   │   │   └── RasterUploadModal.tsx   # Custom GeoTIFF / Scene Dropzone Modal
-│   │   └── ai/
-│   │       ├── AIDock.tsx              # Floating Spatial Planning Copilot Dock
-│   │       └── AIMessageBubble.tsx     # AI Message Bubbles with Evidence Disclosures
-│   ├── services/
-│   │   ├── spatial.ts                  # REST API Bridge to Backend + Client Fallback
-│   │   └── ai/                         # Multi-Provider AI Routing (Gemini / Ollama / Groq)
-│   ├── state/
-│   │   └── ginkgo-store.tsx            # Global Application State Management
-│   ├── styles.css                      # Monochrome Dark Enterprise Design System Tokens
-│   └── types/index.ts                  # TypeScript Domain Types
-├── system-context.md                   # Complete Technical Architecture & I/P/O Reference
-├── ai.md                               # Sequential Engineering Progress Log
-└── AGENTS.md                           # Operating Guidelines & Design Standards
+Browser ── Map (Leaflet, client-only) ── src/services/spatial.ts ── src/lib/geo/
+                                                                     ├─ dem.ts        SRTM tiles, void cleaning
+                                                                     ├─ osm.ts        Overpass (3 endpoints)
+                                                                     ├─ flood.ts      riverine index
+                                                                     ├─ indicators.ts livability / access / suitability
+                                                                     └─ recommend.ts  planning conditions
+Server function ── src/services/ai/llmProxy.ts (Gemini / Groq, keys server-side)
+Optional ── backend/ (FastAPI ML models)
 ```
+
+Full details: [`system-context.md`](system-context.md) · change log: [`ai.md`](ai.md) · contributor rules: [`AGENTS.md`](AGENTS.md).
 
 ---
 
-## 🏆 7. Hackathon Alignment & Methodology
+## Data & licences
 
-Ginkgo was built for the **PLAN-AI Hackathon 2026 (Track B — Geospatial & Satellite AI Challenge)**:
-- **Organizers & Stakeholders**: PLANMalaysia, Lembaga Perancang Bandar Malaysia (LPBM), Malaysian Institute of Planners (MIP), and UZMA.
-- **Focus**: AI for Smart, Inclusive, and Resilient Town Planning (*AI untuk Perancangan Pintar, Inklusif dan Mampan*).
-- **Statutory Alignment**: Evaluates land parcels against **Akta Perancangan Bandar dan Desa 1976 (Akta 172)** and **MSMA 2nd Edition Urban Stormwater Management**.
+Elevation: AWS Terrain Tiles (SRTM). Vectors: © OpenStreetMap contributors (ODbL). Imagery: Esri World Imagery & Wayback, EOX Sentinel-2 cloudless (contains modified Copernicus Sentinel data; 2018+ CC BY-NC-SA). Search: Photon / Nominatim. Heavy production traffic should move basemaps to a commercial tile plan.
 
----
+> Ginkgo is screening-level decision support. It is not a statutory planning approval or a hydraulic flood study.
 
-<div align="center">
-
-**Ginkgo — Built with Precision for Sustainable Urban Futures.**
-
-</div>
+Built for the **PLAN-AI Hackathon 2026 — Track B (Geospatial & Satellite AI)** by Team Kuchiko.

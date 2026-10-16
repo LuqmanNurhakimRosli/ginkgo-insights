@@ -1,217 +1,214 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useGinkgo, useSelectedSite } from "@/state/ginkgo-store";
-import { MapCanvas } from "@/components/map/MapCanvas";
-import { AIMessageBubble } from "@/components/ai/AIMessageBubble";
-import { suggestedPrompts } from "@/services/ai";
-import { MapPin, RotateCcw, SendHorizonal, Sparkles, BookOpen, ChevronDown } from "lucide-react";
+import { MapPin, RotateCcw, SendHorizonal, ShieldCheck, Sparkles } from "lucide-react";
+import { MessageBubble } from "@/components/ai/MessageBubble";
+import { GinkgoMap } from "@/components/map/GinkgoMap";
+import { btn, Segmented } from "@/components/gk/ui";
+import { providers, suggestedPrompts } from "@/services/ai";
+import { useGinkgo } from "@/state/ginkgo-store";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/ai-copilot")({
   head: () => ({
     meta: [
-      { title: "GINKGO — COPILOT WORKSPACE" },
+      { title: "Planning copilot — Ginkgo" },
       {
         name: "description",
-        content: "Full-screen AI agent workspace for conversational spatial analysis.",
+        content:
+          "Ask questions about the analysed area. Answers are grounded in computed GIS results.",
       },
     ],
   }),
-  component: CopilotWorkspaceView,
+  component: CopilotPage,
 });
 
-const promptCategories = [
-  {
-    category: "🛰️ SATELLITE CHANGE DETECTION",
-    prompts: [
-      "Show areas with the highest built-up growth",
-      "Where is vegetation loss highest between 2023 and 2025?",
-      "Compare satellite T1 and T2 composites for Putrajaya",
-    ],
-  },
-  {
-    category: "🌊 FLOOD RISK & HAZARD SCREENING",
-    prompts: [
-      "Check flood exposure indicators for Sungai Buah floodplain",
-      "Is Site C suitable for housing despite flood exposure?",
-    ],
-  },
-  {
-    category: "🏘️ SUSTAINABLE DEVELOPMENT SUITABILITY",
-    prompts: [
-      "Where should sustainable housing development be prioritized?",
-      "Why is Site A's livability score 84?",
-      "Compare Site A and Site B suitability criteria",
-    ],
-  },
-  {
-    category: "📋 AUTOMATED REPORT GENERATION",
-    prompts: [
-      "Generate a complete spatial planning assessment report",
-      "Which areas have poor road accessibility?",
-    ],
-  },
-];
-
-function CopilotWorkspaceView() {
-  const { messages, thinking, askCopilot, resetChat } = useGinkgo();
-  const selectedSite = useSelectedSite();
+function CopilotPage() {
+  const { messages, thinking, askCopilot, resetChat, analysis, settings, updateSettings, status } =
+    useGinkgo();
   const [input, setInput] = useState("");
-  const [showInstructions, setShowInstructions] = useState(true);
+  const [view, setView] = useState<"chat" | "map">("chat");
   const scroller = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const provider = providers[settings.providerId] ?? providers["analyst"]!;
 
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
   }, [messages, thinking]);
 
   const submit = (text: string) => {
-    const value = text.trim();
-    if (!value || thinking) return;
+    const v = text.trim();
+    if (!v || thinking) return;
     setInput("");
-    void askCopilot(value);
+    void askCopilot(v);
+    inputRef.current?.focus();
   };
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-[#0B0C0E]">
-      {/* Subheader Toolbar */}
-      <div className="flex h-10 items-center justify-between border-b border-white/10 px-4 font-mono text-[11px] uppercase tracking-widest text-[#9CA3AF]">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-3.5 w-3.5 text-[#5EEAD4]" />
-          <span className="font-bold text-[#F5F5F4]">VIEW 3 // COPILOT AGENT WORKSPACE</span>
-        </div>
-        <div className="flex items-center gap-4 text-[10px]">
-          <button
-            onClick={() => setShowInstructions((s) => !s)}
-            className="flex items-center gap-1.5 rounded border border-[#5EEAD4]/30 bg-[#5EEAD4]/10 px-2.5 py-1 text-[#5EEAD4] hover:bg-[#5EEAD4]/20"
+    <div className="flex h-full flex-col lg:flex-row">
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 flex-col border-white/[0.08] lg:w-[460px] lg:flex-none lg:border-r",
+          view === "map" && "hidden lg:flex",
+        )}
+      >
+        {/* Header */}
+        <div className="flex items-center gap-2 border-b border-white/[0.08] px-4 py-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 text-[14px] font-semibold">
+              <Sparkles className="h-4 w-4" /> Planning copilot
+            </div>
+            <div className="truncate text-[11.5px] text-[#94a3b8]">
+              {analysis ? (
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-3 w-3" /> {analysis.aoi.name}
+                </span>
+              ) : status === "running" ? (
+                "Analysis running…"
+              ) : (
+                "No area analysed — answers will guide you to start"
+              )}
+            </div>
+          </div>
+          <select
+            value={settings.providerId}
+            onChange={(e) => updateSettings({ providerId: e.target.value })}
+            className="max-w-[150px] rounded-lg border border-white/[0.12] bg-[#0f1115] px-2 py-1.5 text-[12px] text-white outline-none"
+            aria-label="Copilot engine"
           >
-            <BookOpen className="h-3 w-3" />
-            <span>PROMPT GUIDE & SYSTEM INSTRUCTIONS</span>
-          </button>
-
-          <span>STATUS: <span className="text-[#5EEAD4]">{thinking ? "EXECUTING SPATIAL QUERY..." : "ONLINE & READY"}</span></span>
+            {Object.values(providers).map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
           <button
             onClick={resetChat}
-            className="flex items-center gap-1 text-[#9CA3AF] hover:text-[#F5F5F4]"
+            className={btn.icon}
+            title="New conversation"
+            aria-label="New conversation"
           >
-            <RotateCcw className="h-3 w-3" />
-            <span>RESET CHAT</span>
+            <RotateCcw className="h-4 w-4" />
           </button>
         </div>
-      </div>
 
-      {/* Main Split Layout */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Side: Conversation (480px) */}
-        <div className="flex w-[480px] shrink-0 flex-col border-r border-white/10 bg-[#16171A]">
-          {/* Expandable Instruction & Prompt Preset Guide */}
-          {showInstructions && (
-            <div className="border-b border-white/10 bg-black/40 p-4 font-mono text-[11px]">
-              <div className="flex items-center justify-between text-[#5EEAD4] mb-2 font-bold uppercase tracking-wider text-[10px]">
-                <span>SYSTEM INSTRUCTION GUIDE</span>
-                <button onClick={() => setShowInstructions(false)} className="text-[#9CA3AF] hover:text-white">
-                  <ChevronDown className="h-3.5 w-3.5 rotate-180" />
-                </button>
+        <div className="lg:hidden">
+          <div className="px-4 pt-3">
+            <Segmented
+              className="w-full [&>button]:flex-1"
+              value={view}
+              onChange={setView}
+              options={[
+                { value: "chat", label: "Chat" },
+                { value: "map", label: "Map" },
+              ]}
+            />
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div
+          ref={scroller}
+          className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 scroll-thin"
+          aria-live="polite"
+        >
+          {messages.length === 0 && (
+            <div className="space-y-4 animate-fade-in">
+              <div className="flex gap-2.5 rounded-xl border border-white/[0.08] bg-[#14161b] p-3.5">
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#10b981]" />
+                <p className="text-[12px] leading-relaxed text-[#cbd5e1]">
+                  The copilot explains numbers that Ginkgo's GIS engine has already computed for the
+                  selected area. It never creates scores.
+                  <span className="mt-1 block text-[#94a3b8]">Engine: {provider.description}</span>
+                </p>
               </div>
-              <p className="text-[10px] text-[#9CA3AF] leading-relaxed mb-3">
-                Ginkgo Copilot translates natural language spatial instructions into live map actions (camera flying, feature highlighting, layer switching, and score justification).
-              </p>
-
-              <div className="space-y-2">
-                <span className="text-[9px] text-[#5B5F66] uppercase block font-semibold">CLICK A PRESET SPATIAL PROMPT:</span>
-                <div className="max-h-40 overflow-y-auto space-y-2 pr-1">
-                  {promptCategories.map((cat) => (
-                    <div key={cat.category}>
-                      <span className="text-[9px] text-[#5EEAD4] font-semibold block mb-1">{cat.category}</span>
-                      <div className="space-y-1">
-                        {cat.prompts.map((p) => (
-                          <button
-                            key={p}
-                            onClick={() => submit(p)}
-                            className="block w-full text-left rounded border border-white/5 bg-white/5 px-2.5 py-1.5 text-[10px] text-[#F5F5F4] transition-all hover:border-[#5EEAD4]/40 hover:bg-[#5EEAD4]/10"
-                          >
-                            • {p}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+              <div>
+                <div className="mb-2 text-[10.5px] font-semibold uppercase tracking-wider text-[#64748b]">
+                  Try asking
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* Messages Scroller */}
-          <div ref={scroller} className="flex-1 space-y-4 overflow-y-auto p-4">
-            {messages.length === 0 && (
-              <div className="space-y-4">
-                <div className="rounded border border-white/10 bg-black/20 p-3 font-mono text-[11px] text-[#9CA3AF]">
-                  Ask Ginkgo spatial questions. The agent executes GIS tools, updates map layers, highlights features, and justifies every recommendation.
-                </div>
-                <div className="space-y-2">
-                  <span className="font-mono text-[10px] uppercase text-[#5B5F66]">SUGGESTED SPATIAL QUERIES:</span>
+                <div className="grid gap-1.5">
                   {suggestedPrompts.map((p) => (
                     <button
                       key={p}
                       onClick={() => submit(p)}
-                      className="block w-full text-left rounded border border-white/5 bg-white/5 p-3 font-mono text-[11px] text-[#F5F5F4] transition-all hover:border-[#5EEAD4]/40 hover:bg-white/10"
+                      className="rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-left text-[12.5px] text-[#e2e8f0] transition-colors hover:border-white/25 hover:bg-white/[0.05]"
                     >
                       {p}
                     </button>
                   ))}
                 </div>
               </div>
-            )}
-
-            {messages.map((m) => (
-              <AIMessageBubble key={m.id} message={m} />
-            ))}
-
-            {thinking && (
-              <div className="flex items-center gap-2 rounded border border-[#5EEAD4]/30 bg-[#5EEAD4]/5 p-3 font-mono text-[11px] text-[#5EEAD4]">
-                <span className="h-2 w-2 rounded-full bg-[#5EEAD4] animate-cyan-pulse" />
-                <span>Parsing spatial constraints and computing intersection...</span>
-              </div>
-            )}
-          </div>
-
-          {/* Input Footer */}
-          <div className="border-t border-white/10 bg-[#0B0C0E] p-3">
-            {selectedSite && (
-              <div className="mb-2 flex items-center justify-between font-mono text-[10px] uppercase text-[#9CA3AF]">
-                <div className="inline-flex items-center gap-1 rounded bg-[#5EEAD4]/10 px-2 py-0.5 text-[#5EEAD4]">
-                  <MapPin className="h-3 w-3" />
-                  <span>LOCATION CONTEXT: {selectedSite.name}</span>
-                </div>
-                <span>PARCEL ID: {selectedSite.id}</span>
-              </div>
-            )}
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                submit(input);
-              }}
-              className="flex items-center gap-2"
-            >
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="TYPE SPATIAL INSTRUCTION OR QUESTION..."
-                className="w-full rounded border border-white/10 bg-[#16171A] px-3.5 py-2.5 font-mono text-[12px] text-[#F5F5F4] placeholder-[#5B5F66] outline-none focus:border-[#5EEAD4]"
-              />
-              <button
-                type="submit"
-                disabled={thinking || !input.trim()}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-[#5EEAD4] text-[#0B0C0E] transition-opacity disabled:opacity-40"
-              >
-                <SendHorizonal className="h-4 w-4" />
-              </button>
-            </form>
-          </div>
+            </div>
+          )}
+          {messages.map((m) => (
+            <MessageBubble key={m.id} message={m} />
+          ))}
+          {thinking && (
+            <div className="flex items-center gap-2 text-[12px] text-[#94a3b8]">
+              <span className="flex gap-1">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="h-1.5 w-1.5 rounded-full bg-white/60 animate-pulse-soft"
+                    style={{ animationDelay: `${i * 160}ms` }}
+                  />
+                ))}
+              </span>
+              Reading computed results…
+            </div>
+          )}
         </div>
 
-        {/* Right Side: Live Interactive Map Canvas */}
-        <div className="relative flex-1 overflow-hidden bg-[#0B0C0E]">
-          <MapCanvas overlay="suitability" />
+        {/* Composer */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            submit(input);
+          }}
+          className="border-t border-white/[0.08] p-3"
+        >
+          <div className="flex items-end gap-2 rounded-xl border border-white/[0.12] bg-[#0f1115] p-1.5 focus-within:border-white/40">
+            <textarea
+              ref={inputRef}
+              value={input}
+              rows={1}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  submit(input);
+                }
+              }}
+              placeholder={
+                analysis
+                  ? `Ask about ${analysis.aoi.name}…`
+                  : "Ask how Ginkgo works, or analyse an area first…"
+              }
+              aria-label="Message"
+              className="max-h-32 min-h-[36px] flex-1 resize-none bg-transparent px-2 py-2 text-[13px] text-white outline-none placeholder:text-[#64748b]"
+            />
+            <button
+              type="submit"
+              disabled={thinking || !input.trim()}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[#090a0c] disabled:opacity-30"
+              aria-label="Send"
+            >
+              <SendHorizonal className="h-4 w-4" />
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div className={cn("relative min-h-0 flex-1", view === "chat" && "hidden lg:block")}>
+        <GinkgoMap />
+        <div className="absolute left-3 top-3 z-[1000] lg:hidden">
+          <Segmented
+            value={view}
+            onChange={setView}
+            options={[
+              { value: "chat", label: "Chat" },
+              { value: "map", label: "Map" },
+            ]}
+          />
         </div>
       </div>
     </div>
